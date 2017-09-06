@@ -37,10 +37,11 @@ coherence <- function(model, nterms, dtmat, lambda = 0.7, freq) {
   unlist(coherence)
 }
 
-# Error Freq
+
 from_cache <- TRUE
+# TODO: update method
 if (!from_cache) {
-  # ldas <- tibble(models = lda_models, k = map(lda_models, function(x) x@k))
+
   ldas <- list(k = map(lda_models, ~.x@k))
 
   coh10 <- lda_models %>%

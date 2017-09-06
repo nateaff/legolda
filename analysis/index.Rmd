@@ -22,5 +22,4 @@ Background notes and some references for the algorithm, scores and packages used
 
 [4. The final Model](final-model.html)
 
-
 [5. Background](background.html)

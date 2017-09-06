@@ -34,14 +34,7 @@ load_data <- function(sample_data = TRUE, n_samples = 10000) {
     collect()
   sum(counts$n)
 
-  # All valid parents
-  parents <- counts %>%
-    filter(!is.na(parent_id))
-  parent_set <- parents$parent_id
-  # TODO: Redo or not us
-  parent_set
-  # --------------------------------------------------
-
+  cat("Retrieving dataset form db \n")
   # Get tables
   themes <- tbl(con, "themes")
   inventory_sets <- tbl(con, "inventory_sets")

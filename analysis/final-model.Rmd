@@ -30,7 +30,7 @@ knitr::read_chunk(here::here("code", "compare-clusters.R"))
 
 TODO: Paste in later.
 
-![final-topics](~/devel/R-proj/lego-lda/docs/figure/final-topic.png)
+![final-topics](~/devel/R-proj/legolda/docs/figure/final-topic.png)
 
 
 

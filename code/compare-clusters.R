@@ -166,12 +166,12 @@ library(forcats)
 library(dplyr)
 library(ggplot2) 
 
+# Set model num. Models: 20, 30, 40, 50, 60, 75, 100
 model_num = 3
 
 # Assumes topic_pal is available
 lda_clust <- readRDS(here::here("inst", "data", "lda_clusters.RDS"))
 
-# Model with 30 clusters
 set_clust <- tibble(set_num = names(lda_clust[[model_num]]), 
               topic_id = lda_clust[[model_num]]) %>% 
             left_join(sets_df) %>% 

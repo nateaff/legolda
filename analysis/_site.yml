@@ -9,7 +9,7 @@ navbar:
       href: index.html
   right:
     - icon: fa-github
-      href: https://github.com/nateaff/lego-lda
+      href: https://github.com/nateaff/legolda
 output:
   html_document:
     toc: true
