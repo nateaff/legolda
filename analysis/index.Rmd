@@ -1,0 +1,26 @@
+---
+title: "Home"
+output:
+  html_document:
+    toc: false
+---
+
+First we take a look at color frequencies and some sets with the highest and lowest TF-IDF scores. 
+
+[1. High and low TF-IDF](tf-idf.html)
+
+
+Train and evaluate a model using a number of metrics.
+
+[2. Model training](train-model.html)
+
+Look at a few specific models and examine sets most representative of a few topics. 
+
+[3. Topic and term distributions for the final model](topic-term-distributions.html)
+
+Background notes and some references for the algorithm, scores and packages used in the analysis. 
+
+[4. The final Model](final-model.html)
+
+
+[5. Background](background.html)

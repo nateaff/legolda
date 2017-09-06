@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Nathanael Aff" />
+
+
+<title>Notes on scores</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/readable.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+
+.section h2 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h3 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h4 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h5 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h6 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">legolda</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/nateaff/legolda">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Notes on scores</h1>
+<h4 class="author"><em>Nathanael Aff</em></h4>
+
+</div>
+
+
+<div id="notation" class="section level2">
+<h2>Notation</h2>
+<ul>
+<li><span class="math inline">\(D\)</span> be a corpus of documents <span class="math inline">\(d\)</span>.</li>
+<li><span class="math inline">\(V\)</span> a vocubulary of a subset of vocabulary with elements <span class="math inline">\(v\)</span>.</li>
+<li><span class="math inline">\(D(v)\)</span> the count of documents <span class="math inline">\(d\)</span> for which <span class="math inline">\(w \in d\)</span>: *<span class="math inline">\(D(v_i, v_j)\)</span> denotes the count of co-occurencees of <span class="math inline">\(v_i, v_j\)</span> for <span class="math inline">\(d \in D\)</span>. <span class="math display">\[
+  D(v_i) \equiv \{ \# d \in D | v_i \in d \} \quad \text{ and }
+  \quad D(v_i, v_j) \equiv \{ \# d \in D | v_i, v_j \in d \}.
+\]</span> <span class="math inline">\(\#\)</span> denotes the count of items in a set.</li>
+</ul>
+</div>
+<div id="tf-idf" class="section level2">
+<h2>TF-IDF</h2>
+<p>Term frequency and inverse document frequency are computed using raw counts. Term frequency is $ # v D$ and document frequency is <span class="math inline">\(D(v)\)</span>. If <span class="math inline">\(|D| = N\)</span> then inverse document frequency is <span class="math display">\[
+  \text{idf}(v, D) = \log \frac{N}{D(v)}.
+\]</span></p>
+<p>Computed with the <code>bind_tf_idf</code> function from <code>tidytext</code>.</p>
+</div>
+<div id="perplexity" class="section level2">
+<h2>Perplexity</h2>
+<p>The perplexity estimates how well the learned probability distribution of topics over documents fits new samples from a document. The perpelexity of a distribution, <span class="math inline">\(p\)</span> estimated on a holdout set <span class="math inline">\(q\)</span>, with events <span class="math inline">\(x_i\)</span>, is<br />
+<span class="math display">\[
+  \text{Perplexity}(p,q) = \exp(-1/N \sum^N \log q(x_i).
+\]</span> For texts, this is often normalized to a per word perplexity.</p>
+<p>Computed with the <code>perplexity</code> function from <code>topicmodels</code>.</p>
+</div>
+<div id="topic-coherence" class="section level2">
+<h2>Topic Coherence</h2>
+<p><em>(UMass, Mimno)</em></p>
+<p>The topic coherence measures the internal consistency of each topic. The measure is computed by the <a href="https://github.com/matthewjdenny/SpeedReader">SpeedReader</a> package and the background is described in <a href="http://dirichlet.net/pdf/mimno11optimizing.pdf">Optimizing Semantic Coherence in Topic Models</a>. This is an ‘internal’ score; Unlike pointwise mutual information, for example, there is no need to compute word co-occurences on an external corpus.</p>
+<p>The coherence <span class="math inline">\(C\)</span> of topic <span class="math inline">\(t\)</span> is where the top <span class="math inline">\(M\)</span> most probable words are denoted $V^{(t)} = v_k, k {1,2,…, M}, is defined. <span class="math display">\[
+ C(t; V^{(t)}) = \sum_{l}^M \sum_{m}^M \log 
+ \frac{D(v_m^{(t)}, v_l^{(t)}) + 1}{ D(v_l^{(t)})}. 
+\]</span></p>
+<p>The measure is asymmetric and depends on the ordering of the top <span class="math inline">\(M\)</span> terms in topic <span class="math inline">\(t\)</span>. The measure is the empirical conditional probability, <span class="math inline">\(\log p(v_i, v_j) = \frac{p(v_j, v_i)}{p(v_i)}\)</span> with zero probabilities eliminated by adding 1 to <span class="math inline">\(D(v_i, v_j)\)</span>.</p>
+<p>Computed with the <code>coherence</code> function from <code>SpeedReader</code>.</p>
+<p>For a coherence pipeline design see <a href="%60http://svn.aksw.org/papers/2015/WSDM_Topic_Evaluation/public.pdf">this paper</a> and the Python gensim library.</p>
+</div>
+<div id="cluster-evaluation-rand-index" class="section level2">
+<h2>Cluster evaluation (Rand index)</h2>
+<p>The Rand index and adjusted Rand index measure how well a clustering matches existing labeled classes. The Rand indices measures the aggrement of pairs of elements. We can think of putting a pair in the same cluster as a type of classification. If represented as a contigency table then we represent true positives(TP), true negatives (TN), false positives (FP), and false negatives (FN) as</p>
+<table>
+<thead>
+<tr class="header">
+<th>Reality <span class="math inline">\(\to\)</span></th>
+<th align="center">T</th>
+<th>F</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>T</td>
+<td align="center">a = TP</td>
+<td>b = FP</td>
+</tr>
+<tr class="even">
+<td>F</td>
+<td align="center">c = FN</td>
+<td>d = TN</td>
+</tr>
+</tbody>
+</table>
+<p>For <span class="math inline">\(n\)</span> labeled clusters the total number of pairs is <span class="math inline">\({n \choose 2}\)</span>.</p>
+<p>For clusterings <span class="math inline">\(c_i, c_j\)</span> the Rand index is <span class="math display">\[
+  \text{Rand}(c_i, c_j)  = \frac{a + d}{{n \choose 2}}. 
+\]</span></p>
+<p>The adjusted Rand index adjusts for the expected number of randomly correct clusters.</p>
+<p>Computed with the <code>adjustedRand</code> function from <code>clues</code>.</p>
+<p>The other indices computed are:</p>
+<ul>
+<li>FM: Folkes-Mallows index</li>
+</ul>
+<p><span class="math display">\[
+  \text{FM} =  \frac{a}{\sqrt{(a + b)(a + c)}}
+\]</span></p>
+<ul>
+<li><p>JA: Jaccard <span class="math display">\[
+  \text{JA} =  \frac{a}{a + b + c}
+\]</span></p></li>
+<li><p>HA: Hubert-Arabie’s adjusted Rand index. (Equivalent to Cohen’s Kappa computed on the contigency table)</p></li>
+<li><p>MA: Morie and Agresti’s adjusted Rand index.</p></li>
+</ul>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

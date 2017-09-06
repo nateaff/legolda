@@ -1,0 +1,14 @@
+Package: legolda
+Title: Color Topic Models of the Lego Dat Set
+Version: 0.0.0.9
+Authors@R: person("Nathanael", "Aff", email = "nathanaelaff@gmail.com", role = c("aut", "cre"))
+Description: This package contains the analysis code for building color topic 
+  models with the Rebrickable Lego dataset.
+Depends: R (>= 3.4.1)
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1

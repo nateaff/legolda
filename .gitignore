@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+.DS_Store
+code/connect.R
+R/connect.R
+code/lego-lda.R
+inst/doc
+ints/data

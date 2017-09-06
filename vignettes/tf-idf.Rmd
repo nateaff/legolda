@@ -1,0 +1,76 @@
+---
+title: "TF-IDF Analysis"
+author: "Nathanael Aff"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{pkgdown}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+```{r read-chunk, include=FALSE}
+knitr::read_chunk(here::here("code", "chunk-options.R"))
+```
+
+<!-- Update knitr chunk options -->
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
+
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
+
+<!-- Add your analysis here -->
+# Load data 
+
+Retrieving set inventory (or sample of) from database. Update to CSV file if included in the example.
+
+# Compute TF-IDF
+
+Here we compute TF-IDF scores for the all documents and colors. There are only 125 colors, the 'words' in our dictionary but the relative frequency of their occurence varies widely. (See relative frequency plot). 
+
+**TF-IDF Formula** 
+
+
+Low and high frequency terms.
+
+```{r read-tf-idf, eval = TRUE, echo = FALSE}
+devtools::load_all()
+load_data(sample_data = FALSE)
+knitr::read_chunk(here::here("code", "tf-idf.R"))
+```
+
+This code follows the code in [tidytext mining](link-todo.html)
+
+```{r compute-tf-idf, eval = TRUE, echo = TRUE}
+
+```
+
+```{r top-tf-idf-plot, eval = TRUE, echo = TRUE, fig.cap="Top 10 TF-IDF set-color combinations"}
+
+```
+
+Here are a few sample sets from the top TF-IDF sets.
+
+```{r top-tf-idf-sets, eval=TRUE, echo=TRUE, warning=FALSE}
+```
+
+We can also look at the set and color pairs that have the lowest TF-IDF scores. These should be colors that are common or that don't serve to distinguish the sets to which the color belongs. If we were dealing with a text corpus these might be candidates for joining a list of stop words -- common words that are removed from the analysis because they are too frequently used to distinguish documents. The lego set has only 125 colors, including transparent variations. With so few colors I did not remove any 'stop colors'. 
+
+```{r low-tf-idf-plot, eval = TRUE, echo = TRUE}
+
+```
+Here are a few sample sets from the top TF-IDF sets.
+
+```{r low-tf-idf-plots}
+```
+

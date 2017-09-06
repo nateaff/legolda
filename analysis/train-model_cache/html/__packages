@@ -1,0 +1,9 @@
+base
+legolda
+dplyr
+ggplot2
+tidytext
+topicmodels
+DBI
+bindrcpp
+purrr

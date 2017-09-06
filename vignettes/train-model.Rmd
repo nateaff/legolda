@@ -1,0 +1,89 @@
+---
+title: "Training the model"
+author: "Nathanael Aff"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{pkgdown}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk(here::here("code", "chunk-options.R"))
+```
+
+<!-- Update knitr chunk options -->
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
+
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
+
+<!-- Add your analysis here -->
+
+# How many themes?
+
+What number of color themes are there in the Lego dataset? LDA can be thought of as an unsupervised clustering algorithm. Like K-means, the number of clusters or topics is set by the user. In our case, the Lego sets are associated with a theme and some of those themes are associated with a parent theme. It is possible these themes can serve as a category label for the color themes we plan on discovering with the LDA algorithm. Without further exploration we don't know, however, whether color themes match the lego theme categories. In fact, there are some themes, like the "Supplemental", that we can probably expect to have no color theme. 
+
+For the following I'm going to first use cross-validation to choose the number of topics based on perplexity, a measure of the goodness of fit of our topic model. Then I'll see how well the learned number of topics matches the theme labels of the lego set. For the theme labels I use the given parent id of the lego set and all sets with no parent id are assigned their own id as theme label. 
+
+```{r chunk, eval = TRUE, echo = FALSE}
+devtools::load_all()
+knitr::read_chunk(here::here("code", "train-lda.R"))
+```
+
+```{r setup, eval = TRUE, echo = FALSE}
+```
+
+# Training the models 
+
+I used the latent Dirichlet allocation method of the `topicmodels` package. I used the default variational method; using a Gibbs sampling is also an option. 
+
+Although there are only 125 colors that make up the Lego 'vocabulary', there were 10,000 sets in the data I used to train the model. Training the models is computationaly intensive so I'd recommend running the code on a sample if you intend on trying this out yourself. The total running time was several hours on a decent size AWS instance.
+
+I'm following the basic model provided by the super helpful [Tidytext Mining book](tidytextmining.com). I'm was just learning how to use nested dataframe patterns `modelr` and you can see I ended up just looping over the topic parameters for the cross validation code. I modified the `modelr` packages handy method creating dataframes of cross-validation sets so I could feed it the document-term matrix. This means my `kfold` method copies rather than references the data which isn't memory efficient.
+
+
+
+```{r k-fold-cv, eval=FALSE, echo=FALSE, warning=FALSE}
+
+```
+
+
+```{r load-results, eval=TRUE, echo=TRUE}
+```
+
+# Perplexity 
+
+Definition of perplexity. 
+
+The average perplexity scores level off at around 40-50 topics. The perplexity scores for sets get worse as we add more than 50 topics although at least one training set improves. Based only on the perplexity scores I'd probably settle with a model with 50 topics. 
+
+
+```{r cv-result-plot, eval=TRUE, echo=TRUE}
+
+```
+
+
+```{r lda-models, eval=TRUE, echo=TRUE}
+
+```
+
+The [`ldatuning`](https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html) package offers several more methods for evaluating the number of topics in LDA model. I'm not familiar with the metrics but I computed these metrics for most of the models. 
+
+The results below don't give a clear picture on which models are better. Taking a consensus of the three could result in choosing models with either 30 or 75 topics. 
+
+
+```{r other-evaluation, eval=TRUE }
+```
+
+
+

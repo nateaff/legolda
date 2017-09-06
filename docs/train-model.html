@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Nathanael Aff" />
+
+
+<title>Training the model</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/readable.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+
+.section h2 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h3 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h4 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h5 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h6 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">legolda</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/nateaff/legolda">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Training the model</h1>
+<h4 class="author"><em>Nathanael Aff</em></h4>
+
+</div>
+
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+<!-- Insert last udpate and git version-->
+<p><strong>Last updated:</strong> 2017-09-05</p>
+<p><strong>Code version:</strong> 35191de</p>
+<div id="how-many-themes" class="section level1">
+<h1>How many themes?</h1>
+<p>What number of color themes are there in the Lego dataset? LDA can be thought of as an unsupervised clustering algorithm. Like K-means, the number of clusters or topics is set by the user. In our case, the Lego sets are associated with a theme and some of those themes are associated with a parent theme. It is possible these themes can serve as a category label for the color themes we plan on discovering with the LDA algorithm. Without further exploration we don’t know, however, whether color themes match the lego theme categories. In fact, there are some themes, like the “Supplemental”, that we can probably expect to have no color theme.</p>
+<p>For the following I’m going to first use cross-validation to choose the number of topics based on perplexity, a measure of the goodness of fit of our topic model. Then I’ll see how well the learned number of topics matches the theme labels of the lego set. For the theme labels I use the given parent id of the lego set and all sets with no parent id are assigned their own id as theme label.</p>
+<pre><code>Connecting to database 
+Assigning themes to theme_df 
+Assigning sets to sets_df 
+Disconnecting from database 
+Assigning full set set inventories to &#39;set_colors&#39; </code></pre>
+<pre><code>Assigning values to total_words
+Assigning tidy set and color dataframe to &#39;set_words&#39; 
+Creating sparse document term matrix (tm-package) and assigning to &#39;dtm&#39; </code></pre>
+</div>
+<div id="training-the-models" class="section level1">
+<h1>Training the models</h1>
+<p>I used the latent Dirichlet allocation method of the <code>topicmodels</code> package. I used the default variational method; using a Gibbs sampling is also an option.</p>
+<p>Although there are only 125 colors that make up the Lego ‘vocabulary’, there were 10,000 sets in the data I used to train the model. Training the models is computationaly intensive so I’d recommend running the code on a sample if you intend on trying this out yourself. The total running time was several hours on a decent size AWS instance.</p>
+<p>I’m following the basic model provided by the super helpful <a href="tidytextmining.com">Tidytext Mining book</a>. I’m was just learning how to use nested dataframe patterns <code>modelr</code> and you can see I ended up just looping over the topic parameters for the cross validation code. I modified the <code>modelr</code> packages handy method creating dataframes of cross-validation sets so I could feed it the document-term matrix. This means my <code>kfold</code> method copies rather than references the data which isn’t memory efficient.</p>
+<pre class="r"><code>perplexities &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;perplexity_all.RDS&quot;))</code></pre>
+</div>
+<div id="perplexity" class="section level1">
+<h1>Perplexity</h1>
+<p>Definition of perplexity.</p>
+<p>The average perplexity scores level off at around 40-50 topics. The perplexity scores for sets get worse as we add more than 50 topics although at least one training set improves. Based only on the perplexity scores I’d probably settle with a model with 50 topics.</p>
+<pre class="r"><code>perplexities %&gt;%
+  ggplot(aes(n_topic, perplexity)) +
+  geom_point(aes(colour = fold), size = 2) +
+  geom_line(aes(n_topic, perplexity, group = fold, colour = fold)) +
+  scale_color_manual(values = pal21(), guide = guide_legend(title = &quot;Folds&quot;)) +
+  geom_smooth(se = FALSE, colour = &quot;#2f2f2a&quot;) +
+  scale_x_continuous(breaks = perplexities$n_topic) +
+  labs(
+    x = &quot;Number of topics&quot;, y = &quot;Perplexity&quot;,
+    title = &quot;Perplexities scores for LDA models&quot;,
+    subtitle = &quot;Perplexity (lower is better) of holdout sets for 5-fold cross-validation&quot;
+  ) +
+  legolda::theme_scatter(bgcol = &quot;#f8f8f8&quot;) </code></pre>
+<p><img src="figure/train-model.Rmd/cv-result-plot-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ntopics &lt;- c(20, 30, 35, 40, 50, 75, 100)
+# Train LDA models on full data set
+if (!from_cache) {
+  lda_models &lt;- c(20, 30, 35, 40, 50, 75, 100) %&gt;%
+    purrr::map(LDA, x = dtm, control = list(seed = 1))
+}</code></pre>
+<p>The <a href="https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html"><code>ldatuning</code></a> package offers several more methods for evaluating the number of topics in LDA model. I’m not familiar with the metrics but I computed these metrics for most of the models.</p>
+<p>The results below don’t give a clear picture on which models are better. Taking a consensus of the three could result in choosing models with either 30 or 75 topics.</p>
+<pre class="r"><code>lda_models &lt;- readRDS(&quot;~/devel/R-proj/lego-lda/inst/data/lda_models_all.RDS&quot;)
+lda_metrics &lt;- legolda::score_models(lda_models, dtm, topics = ntopics)
+
+plot_lda_scores(lda_metrics, title)</code></pre>
+<p><img src="figure/train-model.Rmd/other-evaluation-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>We also computed coherence based on : From the SpeedReader packages</p>
+<pre class="r"><code>cohdf &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;coherence.RDS&quot;))
+cohdf$topn &lt;- forcats::fct_inorder(cohdf$topn)
+# TODO: sort number of terms in order
+
+cohdf %&gt;%
+  ggplot(aes(x = ntopics, y = coherence, group = topn)) +
+  geom_point(aes(colour = topn, group = topn), size = 2) +
+  geom_line(aes(color = topn)) +
+  scale_color_manual(values = pal21(), guide = guide_legend(title = &quot;Number of terms&quot;)) +
+  scale_x_continuous(breaks = cohdf$ntopics) +
+  labs(
+    x = &quot;Number of topics&quot;, y = &quot;Coherence&quot;,
+    title = &quot;Term coherence of LDA models&quot;,
+    subtitle = &quot;Coherence scores (higher is better) for top 3, 5 and 10 terms&quot;
+  ) +
+  theme_scatter(bgcol= &quot;#f8f8f8&quot;)</code></pre>
+<p><img src="figure/train-model.Rmd/coherence-score-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>Lastly, the learned clusters were compared to ‘ground truth’ labels, which I took to be each sets ‘parent id’. Any set that was a top level parent was assigned it’s own id. This left 125 parents for the 10713 lego sets included in the analysis. Of those, ony 68 or so were also parents of some other set. This means there are a good number of themes that aren’t parent themes but are top-level themes.</p>
+<p><img src="figure/train-model.Rmd/plot-external-scores-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>Following the tidytext book, look at the distribution over topics.</p>
+<p><img src="figure/train-model.Rmd/plot-30-topics-1.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

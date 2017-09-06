@@ -1,0 +1,98 @@
+---
+title: "Notes on scores"
+author: "Nathanael Aff"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+## Notation 
+
+* $D$ be a corpus of documents $d$.
+* $V$ a vocubulary of a subset of vocabulary with elements $v$. 
+* $D(v)$ the count of documents $d$ for which $w \in d$:
+*$D(v_i, v_j)$ denotes the count of co-occurencees of $v_i, v_j$ for 
+$d \in D$. 
+\[
+  D(v_i) \equiv \{ \# d \in D | v_i \in d \} \quad \text{ and }
+  \quad D(v_i, v_j) \equiv \{ \# d \in D | v_i, v_j \in d \}.
+\]
+$\#$ denotes the count of items in a set.
+
+## TF-IDF 
+
+Term frequency and inverse document frequency are computed using raw counts. Term frequency is $ \# v \in D$ and document frequency is $D(v)$.
+If $|D| = N$ then inverse document frequency is 
+\[
+  \text{idf}(v, D) = \log \frac{N}{D(v)}.
+\]
+
+Computed with the `bind_tf_idf` function from `tidytext`.
+
+## Perplexity 
+
+The perplexity estimates how well the learned probability distribution of topics over documents fits new samples from a document. The perpelexity of a distribution, $p$ estimated on a holdout set $q$, with events $x_i$, is  
+\[
+  \text{Perplexity}(p,q) = \exp(-1/N \sum^N \log q(x_i).
+\]
+For texts, this is often normalized to a per word perplexity. 
+
+Computed with the `perplexity` function from `topicmodels`.
+
+
+
+## Topic Coherence 
+
+_(UMass, Mimno)_
+
+The topic coherence measures the internal consistency of each topic. The measure is computed by the [SpeedReader](https://github.com/matthewjdenny/SpeedReader) package and the background is described in [Optimizing Semantic Coherence in Topic Models](http://dirichlet.net/pdf/mimno11optimizing.pdf). This is an 'internal' score; Unlike pointwise mutual information, for example, there is no need to compute word co-occurences on an external corpus.
+
+
+The coherence $C$ of topic $t$ is where the top $M$ most probable words are denoted $V^{(t)} = v_k, k \in \{1,2,..., M\}, is defined. 
+\[
+ C(t; V^{(t)}) = \sum_{l}^M \sum_{m}^M \log 
+ \frac{D(v_m^{(t)}, v_l^{(t)}) + 1}{ D(v_l^{(t)})}. 
+\]
+
+The measure is asymmetric and depends on the ordering of the top $M$ terms in topic $t$. The measure is the empirical conditional probability, $\log p(v_i, v_j) = \frac{p(v_j, v_i)}{p(v_i)}$ with zero probabilities eliminated by adding 1 to $D(v_i, v_j)$. 
+
+Computed with the `coherence` function from `SpeedReader`.
+
+For a coherence pipeline design see [this paper](`http://svn.aksw.org/papers/2015/WSDM_Topic_Evaluation/public.pdf) and the Python gensim library. 
+
+## Cluster evaluation (Rand index)
+
+The Rand index and adjusted Rand index measure how well a clustering matches existing labeled classes. The Rand indices measures the aggrement of pairs of elements. We can think of putting a pair in the same cluster as a type of classification. If represented as a contigency table then we represent true positives(TP), true negatives (TN), false positives (FP), and false negatives (FN) as
+
+| Reality $\to$  | T    | F       |
+|---|:----------:|---------| 
+| T |a = TP      | b = FP  | 
+| F |c = FN      | d = TN  |
+
+For $n$ labeled clusters the total number of pairs is ${n \choose 2}$.
+
+For clusterings $c_i, c_j$ the Rand index is
+\[
+  \text{Rand}(c_i, c_j)  = \frac{a + d}{{n \choose 2}}. 
+\]
+
+The adjusted Rand index adjusts for the expected number of randomly correct clusters. 
+
+Computed with the `adjustedRand` function from `clues`.
+
+The other indices computed are: 
+
+* FM: Folkes-Mallows index 
+
+\[
+  \text{FM} =  \frac{a}{\sqrt{(a + b)(a + c)}}
+\]
+
+* JA: Jaccard 
+\[
+  \text{JA} =  \frac{a}{a + b + c}
+\] 
+
+* HA: Hubert-Arabie's adjusted Rand index. (Equivalent to Cohen's Kappa computed on the contigency table)
+
+* MA: Morie and Agresti's adjusted Rand index.

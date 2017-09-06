@@ -1,0 +1,40 @@
+---
+title: "Final Topic model"
+author: "Nathanael Aff"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+
+## Final Topic Model
+
+So finally we'll settle on the topic model with 30 topics and look at a couple of summaries based on that topic. 
+
+
+```{r load-chunk1}
+devtools::load_all()
+knitr::read_chunk(here::here("code", "compare-clusters.R"))
+```
+
+```{r plot-cluster}
+```
+
+```{r plot-topic-distribution, eval = TRUE, fig.width = 9, fig.height = 5}
+```
+
+```{r plot-topic-timeline, eval = TRUE, fig.width = 9, fig.height = 12}
+```
+
+## Color distributions by topic 
+
+TODO: Paste in later.
+
+![final-topics](~/devel/R-proj/lego-lda/docs/figure/final-topic.png)
+
+
+
+
+
+
+

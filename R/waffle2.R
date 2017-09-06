@@ -1,0 +1,349 @@
+#' Make waffle (square pie) charts
+#'
+#' Given a named vector or a data frame, this function will return a ggplot object that
+#' represents a waffle chart of the values. The individual values will be
+#' summed up and each that will be the total number of squares in the grid.
+#' You can perform appropriate value transformation ahead of time to get the
+#' desired waffle layout/effect.
+#'
+#' If a data frame is used, the first two columns should contain the desired names
+#' and the values, respectively.
+#'
+#' If the vector is not named or only partially named, capital letters will be
+#' used instead.
+#'
+#' It is highly suggested that you limit the number of elements
+#' to plot, just like you should if you ever got wasted and decided that a
+#' regular pie chart was a good thing to create and then decide to be totally
+#' evil and make one to pollute this beautiful world of ours.
+#'
+#' Chart title and x-axis labels are optional, especially if you'll just be
+#' exporting to another program for use/display.
+#'
+#' If you specify a string (vs \code{FALSE}) to \code{use_glyph} the function
+#' will map the input to a FontAwesome glyph name and use that glyph for the
+#' tile instead of a block (making it more like an isotype pictogram than a
+#' waffle chart). You'll need to install FontAwesome and use
+#' the \code{extrafont} package (\code{https://github.com/wch/extrafont}) to
+#' be able to use the FontAwesome glyphs. Sizing is also up to the user since
+#' fonts do not automatically scale with graphic resize.
+#'
+#' Glyph idea inspired by Ruben C. Arslan (@@_r_c_a)
+#'
+#' @param parts named vector of values or a data frame to use for the chart
+#' @param rows number of rows of blocks
+#' @param keep keep factor levels (i.e. for consistent legends across waffle plots)
+#' @param xlab text for below the chart. Highly suggested this be used to
+#'     give the "1 sq == xyz" relationship if it's not obvious
+#' @param title chart title
+#' @param colors exactly the number of colors as values in \code{parts}.
+#'     If omitted, Color Brewer "Set2" colors are used.
+#' @param size width of the separator between blocks (defaults to \code{2})
+#' @param flip flips x & y axes
+#' @param reverse reverses the order of the data
+#' @param equal by default, waffle uses \code{coord_equal}; this can cause
+#'     layout problems, so you an use this to disable it if you are using
+#'     ggsave or knitr to control output sizes (or manually sizing the chart)
+#' @param pad how many blocks to right-pad the grid with
+#' @param use_glyph use specified FontAwesome glyph
+#' @param glyph_size size of the FontAwesome font
+#' @param legend_pos position of legend
+#' @export
+#' @examples
+#' parts <- c(80, 30, 20, 10)
+#' waffle(parts, rows=8)
+#'
+#' parts <- data.frame(
+#'   names = LETTERS[1:4],
+#'   vals = c(80, 30, 20, 10)
+#' )
+#'
+#' waffle(parts, rows=8)
+#'
+#' # library(extrafont)
+#' # waffle(parts, rows=8, use_glyph="shield")
+#'
+#' parts <- c(One=80, Two=30, Three=20, Four=10)
+#' chart <- waffle(parts, rows=8)
+#' # print(chart)
+waffle2 <- function(parts, rows=10, keep=TRUE, xlab=NULL, title=NULL, colors=NA,
+                    size=2, flip=FALSE, reverse=FALSE, equal=TRUE, pad=0,
+                    use_glyph=FALSE, glyph_size=12, legend_pos="right",
+                    tile_color = "white") {
+  if (inherits(parts, "data.frame")) {
+    setNames(
+      unlist(parts[, 2], use.names = FALSE),
+      unlist(parts[, 1], use.names = FALSE)
+    ) -> parts
+  }
+
+  # fill in any missing names
+  part_names <- names(parts)
+  if (length(part_names) < length(parts)) {
+    part_names <- c(part_names, LETTERS[1:length(parts) - length(part_names)])
+  }
+
+  names(parts) <- part_names
+
+  # use Set2 if no colors are specified
+  if (all(is.na(colors))) colors <- suppressWarnings(brewer.pal(length(parts), "Set2"))
+
+  # make one big vector of all the bits
+  parts_vec <- unlist(sapply(1:length(parts), function(i) {
+    rep(names(parts)[i], parts[i])
+  }))
+
+  if (reverse) parts_vec <- rev(parts_vec)
+
+  # setup the data frame for geom_rect
+  dat <- expand.grid(y = 1:rows, x = seq_len(pad + (ceiling(sum(parts) / rows))))
+
+  # add NAs if needed to fill in the "rectangle"
+  dat$value <- c(parts_vec, rep(NA, nrow(dat) - length(parts_vec)))
+  if (!inherits(use_glyph, "logical")) {
+    fa_unicode <- fa_unicode()
+    fontlab <- rep(fa_unicode[use_glyph], length(unique(parts_vec)))
+    dat$fontlab <- c(
+      fontlab[as.numeric(factor(parts_vec))],
+      rep(NA, nrow(dat) - length(parts_vec))
+    )
+  }
+
+  dat$value <- ifelse(is.na(dat$value), " ", dat$value)
+
+  if (" " %in% dat$value) part_names <- c(part_names, " ")
+  if (" " %in% dat$value) colors <- c(colors, "#00000000")
+
+  dat$value <- factor(dat$value, levels = part_names)
+
+  gg <- ggplot(dat, aes(x = x, y = y))
+
+  if (flip) gg <- ggplot(dat, aes(x = y, y = x))
+
+  gg <- gg + theme_bw()
+
+  # make the plot
+
+  if (inherits(use_glyph, "logical")) {
+    gg <- gg + geom_tile(aes(fill = value), color = tile_color, size = size)
+    gg <- gg + scale_fill_manual(
+      name = "",
+      values = colors,
+      label = part_names,
+      na.value = "white",
+      drop = !keep
+    )
+    gg <- gg + guides(fill = guide_legend(override.aes = list(colour = "#00000000")))
+    gg <- gg + theme(legend.background = element_rect(fill = "#00000000", color = "#00000000"))
+    gg <- gg + theme(legend.key = element_rect(fill = "#00000000", color = "#00000000"))
+  } else {
+    if (choose_font("FontAwesome", quiet = TRUE) == "") {
+      stop(
+        "FontAwesome not found. Install via: https://github.com/FortAwesome/Font-Awesome/tree/master/fonts",
+        call. = FALSE
+      )
+    }
+
+    suppressWarnings(
+      suppressMessages(
+        font_import(
+          system.file("fonts", package = "waffle"),
+          recursive = FALSE,
+          prompt = FALSE
+        )
+      )
+    )
+
+    if (!(!interactive() || stats::runif(1) > 0.1)) {
+      message("Font Awesome by Dave Gandy - http://fontawesome.io")
+    }
+
+    gg <- gg + geom_tile(color = "#00000000", fill = "#00000000", size = size, alpha = 0, show.legend = FALSE)
+    gg <- gg + geom_point(aes(color = value), fill = "#00000000", size = 0, show.legend = TRUE)
+    gg <- gg + geom_text(
+      aes(color = value, label = fontlab),
+      family = "FontAwesome", size = glyph_size, show.legend = FALSE
+    )
+    gg <- gg + scale_color_manual(
+      name = "",
+      values = colors,
+      labels = part_names,
+      drop = !keep
+    )
+    gg <- gg + guides(color = guide_legend(override.aes = list(shape = 15, size = 7)))
+    gg <- gg + theme(legend.background = element_rect(fill = "#00000000", color = "#00000000"))
+    gg <- gg + theme(legend.key = element_rect(color = "#00000000"))
+  }
+
+  gg <- gg + labs(x = xlab, y = NULL, title = title)
+  gg <- gg + scale_x_continuous(expand = c(0, 0))
+  gg <- gg + scale_y_continuous(expand = c(0, 0))
+
+  if (equal) gg <- gg + coord_equal()
+
+  gg <- gg + theme(panel.grid = element_blank())
+  gg <- gg + theme(panel.border = element_blank())
+  gg <- gg + theme(panel.background = element_blank())
+  gg <- gg + theme(panel.spacing = unit(0, "null"))
+
+  gg <- gg + theme(axis.text = element_blank())
+  gg <- gg + theme(axis.title.x = element_text(size = 10))
+  gg <- gg + theme(axis.ticks = element_blank())
+  gg <- gg + theme(axis.line = element_blank())
+  gg <- gg + theme(axis.ticks.length = unit(0, "null"))
+
+  gg <- gg + theme(plot.title = element_text(size = 18))
+
+  gg <- gg + theme(plot.background = element_blank())
+  gg <- gg + theme(panel.spacing = unit(c(0, 0, 0, 0), "null"))
+
+  gg <- gg + theme(legend.position = legend_pos)
+
+  gg
+}
+
+
+# Wrapper for the waffle plot
+ 
+#' A wrapper of the waffle function
+#'
+#'
+#' @param data The data
+#' @param nrows An integer. The umber of rows of the waffle plot
+#' @param size A double. Controls the border size of individual squares.
+#' @param nchr An integer. The number of characters in the title.
+#' @param pad A double. Plot margin padding.
+#' @return return The plot
+#' @export
+waff <- function(data, nrows = 5, size = 0.5, nchr = 20, pad = 0) {
+  bgcol <- "#e8e4e2"
+  with(
+    data,
+    waffle2(
+      counts[[1]],
+      colors = names(counts[[1]]),
+      rows = nrows,
+      size = size,
+      pad = pad,
+      legend_pos = "",
+      title = paste0(
+        stringr::str_sub(name[[1]], 1, nchr),
+        ", ", theme, " theme",
+        ", (", year[[1]], ")"
+      ),
+      xlab = "1 square = 1 brick",
+      tile_color = bgcol
+    ) + theme_waff()
+  )
+}
+
+
+# Themes
+ 
+#' A ggplot2 theme
+#'
+#'
+#' @return return
+#' @export
+theme_waff <- function(bgcol = "#e8e4e2") {
+  theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.background = element_rect(fill = bgcol, color = bgcol),
+      panel.background = element_rect(fill = bgcol, color = bgcol),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      # panel.spacing = unit(1.2, "lines"),
+      plot.title = element_text(
+        family = "Lato",
+        size = 14,
+        face = "bold",
+        color = "gray5"
+      ),
+      plot.subtitle = element_text(
+        color = "gray10",
+        face = "plain",
+        size = 11
+      ),
+      axis.title = element_text(
+        family = "Roboto Condensed",
+        size = 11 ,
+        color = "gray15"
+      ),
+      axis.text = element_blank(),
+      plot.caption = element_text(
+        family = "Roboto Condensed",
+        face = "italic",
+        size = 9,
+        color = "gray25"
+      )
+    )
+}
+
+
+#' A ggplot2 theme
+#'
+#'
+#' @return return
+#' @export
+theme_bar <- function(bgcol = "#e8e4e2", grid_col = "gray25") {
+  theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.background = element_rect(fill = bgcol, color = bgcol),
+      panel.background = element_rect(fill = bgcol, color = bgcol),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.x = element_line(color = grid_col, size = 0.15),
+      # panel.spacing = unit(1.2, "lines"),
+      plot.title = element_text(
+        family = "Lato",
+        size = 16,
+        face = "bold",
+        color = "gray5"
+      ),
+      plot.subtitle = element_text(
+        color = "gray10",
+        face = "plain",
+        size = 10
+      ),
+      axis.title = element_text(
+        family = "Roboto Condensed",
+        size = 9,
+        color = "gray15"
+      ),
+      # axis.text = element_blank(),
+      plot.caption = element_text(
+        family = "Roboto Condensed",
+        face = "italic",
+        size = 9,
+        color = "gray25"
+      )
+    )
+}
+
+
+#' A ggplot2 theme
+#'
+#'
+#' @return return
+#' @export
+theme_scatter <- function(bgcol = "#e8e4e2", grid_col = "gray25") {
+  theme_bar(bgcol) +
+    theme(
+      legend.position = "bottom",
+      legend.text = element_text(
+        family = "Roboto Condensed",
+        size = 9,
+        color = "gray15"),
+      legend.title = element_text(
+        family = "Roboto Condensed",
+        size = 9,
+        color = "gray5"),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.y = element_line(color = grid_col, size = 0.15),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.x = element_line(color = grid_col, size = 0.15)
+    )
+}

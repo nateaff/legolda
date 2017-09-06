@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Nathanael Aff" />
+
+
+<title>Color and topic distributions</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/readable.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 66px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+
+.section h2 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h3 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h4 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h5 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+.section h6 {
+  padding-top: 71px;
+  margin-top: -71px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">legolda</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/nateaff/legolda">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Color and topic distributions</h1>
+<h4 class="author"><em>Nathanael Aff</em></h4>
+
+</div>
+
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+<!-- Update knitr chunk options -->
+<!-- Insert the date the file was last updated -->
+<p><strong>Last updated:</strong> 2017-09-04</p>
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+<p><strong>Code version:</strong> 35191de</p>
+<!-- Add your analysis here -->
+<div id="color-distributions-over-topics" class="section level1">
+<h1>Color distributions over topics</h1>
+<p>In the beginning we described the latend-Dirichlet model as a generative model. The LDA algorithm attempts to learn the generative distributions that’s most likely given the data at hand. The result of the LDA models is two posterior distributions, the algorithm’s best guess at the distribution of topics over the Lego sets and colors over the topics that generated out documents.</p>
+<p>First we’ll look at the learned topics.</p>
+<pre class="r"><code>library(dplyr)
+library(purrr)
+library(ggplot2)</code></pre>
+<pre><code>Connecting to database 
+Assigning themes to theme_df 
+Assigning sets to sets_df 
+Disconnecting from database 
+Assigning full set set inventories to &#39;set_colors&#39; </code></pre>
+<pre class="r"><code>devtools::load_all()
+knitr::read_chunk(here::here(&quot;code&quot;, &quot;compare-lda.R&quot;))</code></pre>
+<pre class="r"><code>lda_models &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_models_all.RDS&quot;))
+
+set_topics &lt;- lda_models %&gt;%
+  purrr::map(function(x) {
+    class(x) &lt;- &quot;LDA&quot;
+    x
+  }) %&gt;%
+  purrr::map(tidytext::tidy, matrix = &quot;gamma&quot;)
+
+# Total frequency used in relevance score
+word_freq &lt;- set_colors %&gt;%
+  count(rgba) %&gt;%
+  mutate(percent = n / nrow(set_colors))
+
+# Create palette
+pal &lt;- unique(set_colors$rgba)
+names(pal) &lt;- unique(pal)
+
+
+# Plot weighted relevance of terms/colors for each topic
+plot_relevance &lt;- function(model, freq, lambda = 0.5, top = 7) {
+  # Does not tidy &quot;LDA_VEM&quot;
+  class(model) &lt;- &quot;LDA&quot;
+
+  topics &lt;- tidytext::tidy(model, matrix = &quot;beta&quot;) %&gt;%
+    right_join(freq, by = c(&quot;term&quot; = &quot;rgba&quot;)) %&gt;%
+    mutate(relevance = legolda::weight(beta, percent, lambda)) %&gt;%
+    arrange(topic, desc(relevance))
+
+  top_terms &lt;- topics %&gt;%
+    group_by(topic) %&gt;%
+    top_n(top, relevance) %&gt;%
+    ungroup() %&gt;%
+    mutate(topic_name = paste0(&quot;Topic &quot;, topic)) %&gt;%
+    arrange(topic, -relevance) %&gt;%
+    # Keep colors sorted for faceting
+    mutate(order = row_number())
+
+  ntopics &lt;- max(top_terms$topic)
+  subtitle &lt;- paste0(&quot;Weighted color distribution for &quot;, ntopics, &quot; topics&quot;)
+
+  top_terms %&gt;%
+    ggplot(aes(x = -order, y = relevance, fill = term)) +
+    labs(
+      x = &quot;&quot;, y = &quot;Relevance&quot;,
+      title = &quot;Lego color topics&quot;,
+      subtitle = subtitle
+    ) +
+    geom_col(show.legend = FALSE) +
+    facet_wrap(~topic, scales = &quot;free&quot;, nrow = 5) +
+    scale_fill_manual(values = pal) +
+    coord_flip() +
+    theme_bar() +
+    theme(
+      axis.text.x = element_blank(),
+      axis.text.y = element_blank(),
+      panel.grid.major.x = element_blank()
+    )
+}
+
+plot_relevance(lda_models[[2]], word_freq, 0.6, 10)</code></pre>
+<p><img src="figure/topic-term-distributions.Rmd/color-distribution-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot_relevance(lda_models[[3]], word_freq, 0.6, 10)</code></pre>
+<p><img src="figure/topic-term-distributions.Rmd/color-distribution-2.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot_relevance(lda_models[[6]], word_freq, 0.6, 10)</code></pre>
+<p><img src="figure/topic-term-distributions.Rmd/color-distribution-3.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>docs &lt;- lapply(lda_models, function(x) {
+  class(x) &lt;- &quot;LDA&quot;
+  x
+}) %&gt;%
+
+purrr::map(tidytext::tidy, matrix = &quot;gamma&quot;)
+
+# Which sets are most associated with a topic
+topic_num &lt;- 37
+model_num &lt;- 4
+
+view_topic &lt;- docs[[model_num]] %&gt;%
+  filter(topic == topic_num) %&gt;%
+  arrange(desc(gamma)) %&gt;%
+  head(10) %&gt;%
+  mutate(set_num = document, gamma = round(gamma, 2)) %&gt;%
+  left_join(sets_df, by = &quot;set_num&quot;) %&gt;%
+  mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;%
+  select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;%
+  left_join(theme_df, by = c(&quot;theme_id&quot; = &quot;id&quot;)) %&gt;%
+  mutate(theme_name = name) %&gt;%
+  select(topic, gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
+
+knitr::kable(view_topic, caption = &quot;Sets most associated with topic 37&quot;)</code></pre>
+<table>
+<caption>Sets most associated with topic 37</caption>
+<thead>
+<tr class="header">
+<th align="right">topic</th>
+<th align="right">gamma</th>
+<th align="left">set_name</th>
+<th align="left">set_num</th>
+<th align="left">theme_name</th>
+<th align="right">theme_id</th>
+<th align="right">year</th>
+<th align="right">num_parts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">37</td>
+<td align="right">0.81</td>
+<td align="left">Advent Calendar 2013</td>
+<td align="left">41016-13</td>
+<td align="left">Friends</td>
+<td align="right">226</td>
+<td align="right">2013</td>
+<td align="right">8</td>
+</tr>
+<tr class="even">
+<td align="right">37</td>
+<td align="right">0.73</td>
+<td align="left">Monthly Mini Model B</td>
+<td align="left">40068-1</td>
+<td align="left">Monthly Mini Model Build</td>
+<td align="right">409</td>
+<td align="right">2013</td>
+<td align="right">31</td>
+</tr>
+<tr class="odd">
+<td align="right">37</td>
+<td align="right">0.72</td>
+<td align="left">Cinderella’s Carriag</td>
+<td align="left">6153-1</td>
+<td align="left">Duplo</td>
+<td align="right">504</td>
+<td align="right">2012</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td align="right">37</td>
+<td align="right">0.70</td>
+<td align="left">Advent Calendar 2014</td>
+<td align="left">41040-4</td>
+<td align="left">Friends</td>
+<td align="right">226</td>
+<td align="right">2014</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">37</td>
+<td align="right">0.66</td>
+<td align="left">Advent Calendar 2012</td>
+<td align="left">3316-3</td>
+<td align="left">Friends</td>
+<td align="right">226</td>
+<td align="right">2012</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">37</td>
+<td align="right">0.66</td>
+<td align="left">Advent Calendar 2013</td>
+<td align="left">41016-2</td>
+<td align="left">Friends</td>
+<td align="right">226</td>
+<td align="right">2013</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">37</td>
+<td align="right">0.63</td>
+<td align="left">Play House</td>
+<td align="left">10505-1</td>
+<td align="left">Duplo</td>
+<td align="right">504</td>
+<td align="right">2013</td>
+<td align="right">83</td>
+</tr>
+<tr class="even">
+<td align="right">37</td>
+<td align="right">0.63</td>
+<td align="left">Sleeping Beauty’s Fa</td>
+<td align="left">10542-1</td>
+<td align="left">Disney Princess</td>
+<td align="right">579</td>
+<td align="right">2014</td>
+<td align="right">55</td>
+</tr>
+<tr class="odd">
+<td align="right">37</td>
+<td align="right">0.62</td>
+<td align="left">Cinderella’s Castle</td>
+<td align="left">6154-1</td>
+<td align="left">Duplo</td>
+<td align="right">504</td>
+<td align="right">2012</td>
+<td align="right">77</td>
+</tr>
+<tr class="even">
+<td align="right">37</td>
+<td align="right">0.62</td>
+<td align="left">LEGO® Friends Notebo</td>
+<td align="left">850595-1</td>
+<td align="left">Gear</td>
+<td align="right">501</td>
+<td align="right">2014</td>
+<td align="right">16</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>library(waffle)
+plot_topic &lt;- docs[[model_num]] %&gt;%
+  dplyr::filter(topic == topic_num) %&gt;%
+  dplyr::arrange(desc(gamma)) %&gt;%
+  head(20)
+
+
+waffle_prep &lt;- function(document, sets) {
+  document$set_num &lt;- document$document
+  document %&gt;%
+    left_join(sets, by = &quot;set_num&quot;) %&gt;%
+    select(set_num, name, theme, year, rgba) %&gt;%
+    group_by(theme, name, set_num, year) %&gt;%
+    tidyr::nest() %&gt;%
+    mutate(counts = purrr::map(data, table))
+}
+
+w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
+w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
+w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
+w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
+
+waffle::iron(
+  waff(w1, pad = 0, size = 0.5, nrow = 1, nchr = 20),
+  waff(w2, pad = 0, size = 2, nrow = 1, nchr = 13),
+  waff(w3, pad = 0, size = 0.2, nrow = 4, nchr = 20),
+  waff(w4, pad = 0, size = 0.2, nrow = 3, nchr = 13)
+)</code></pre>
+<p><img src="figure/topic-term-distributions.Rmd/waffle-topic-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Which sets are most associated with a topic
+topic_num &lt;- 19
+model_num &lt;- 4
+
+view_topic &lt;- docs[[model_num]] %&gt;%
+  filter(topic == topic_num) %&gt;%
+  arrange(desc(gamma)) %&gt;%
+  head(10) %&gt;%
+  mutate(set_num = document, gamma = round(gamma, 2)) %&gt;%
+  left_join(sets_df, by = &quot;set_num&quot;) %&gt;%
+  mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;%
+  select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;%
+  left_join(theme_df, by = c(&quot;theme_id&quot; = &quot;id&quot;)) %&gt;%
+  mutate(theme_name = name) %&gt;%
+  select(topic, gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
+
+knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, topic_num))</code></pre>
+<table>
+<caption>Sets most associated with topic 19</caption>
+<thead>
+<tr class="header">
+<th align="right">topic</th>
+<th align="right">gamma</th>
+<th align="left">set_name</th>
+<th align="left">set_num</th>
+<th align="left">theme_name</th>
+<th align="right">theme_id</th>
+<th align="right">year</th>
+<th align="right">num_parts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">19</td>
+<td align="right">0.76</td>
+<td align="left">Flying Warrior</td>
+<td align="left">71011-6</td>
+<td align="left">Series 15 Minifigures</td>
+<td align="right">554</td>
+<td align="right">2016</td>
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="right">19</td>
+<td align="right">0.72</td>
+<td align="left">Titanium Zane</td>
+<td align="left">NIN891617-1</td>
+<td align="left">Ninjago</td>
+<td align="right">435</td>
+<td align="right">2016</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="right">19</td>
+<td align="right">0.63</td>
+<td align="left">Lloyd Fun Pack</td>
+<td align="left">71239-1</td>
+<td align="left">Dimensions</td>
+<td align="right">604</td>
+<td align="right">2016</td>
+<td align="right">56</td>
+</tr>
+<tr class="even">
+<td align="right">19</td>
+<td align="right">0.61</td>
+<td align="left">Cole foil pack</td>
+<td align="left">891611-1</td>
+<td align="left">Ninjago</td>
+<td align="right">435</td>
+<td align="right">2016</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="right">19</td>
+<td align="right">0.58</td>
+<td align="left">Rocka 3.0</td>
+<td align="left">2143-1</td>
+<td align="left">Heroes</td>
+<td align="right">401</td>
+<td align="right">2011</td>
+<td align="right">30</td>
+</tr>
+<tr class="even">
+<td align="right">19</td>
+<td align="right">0.57</td>
+<td align="left">Zamor Spheres</td>
+<td align="left">8719-1</td>
+<td align="left">Supplemental</td>
+<td align="right">346</td>
+<td align="right">2006</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="right">19</td>
+<td align="right">0.56</td>
+<td align="left">Advent Calendar 2013</td>
+<td align="left">75023-4</td>
+<td align="left">Star Wars</td>
+<td align="right">225</td>
+<td align="right">2013</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">19</td>
+<td align="right">0.54</td>
+<td align="left">Peter Pan</td>
+<td align="left">71012-15</td>
+<td align="left">Disney</td>
+<td align="right">555</td>
+<td align="right">2016</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="right">19</td>
+<td align="right">0.54</td>
+<td align="left">Irnakk</td>
+<td align="left">8626-1</td>
+<td align="left">Titans</td>
+<td align="right">347</td>
+<td align="right">2006</td>
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="right">19</td>
+<td align="right">0.54</td>
+<td align="left">Samurai droid</td>
+<td align="left">SAMURAI-DROID-1</td>
+<td align="left">Ninjago</td>
+<td align="right">435</td>
+<td align="right">2015</td>
+<td align="right">32</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>topic_num &lt;- 19
+plot_topic &lt;- docs[[model_num]] %&gt;%
+  dplyr::filter(topic == topic_num) %&gt;%
+  dplyr::arrange(desc(gamma)) %&gt;%
+  head(20)
+# plot_topic
+
+waffle_prep &lt;- function(document, sets) {
+  document$set_num &lt;- document$document
+  document %&gt;%
+    left_join(sets, by = &quot;set_num&quot;) %&gt;%
+    select(set_num, name, theme, year, rgba) %&gt;%
+    group_by(theme, name, set_num, year) %&gt;%
+    tidyr::nest() %&gt;%
+    mutate(counts = purrr::map(data, table))
+}
+
+w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
+w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
+w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
+w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
+
+waffle::iron(
+  waff(w1, pad = 0, size = 0.5, nrow = 3, nchr = 20),
+  waff(w2, pad = 0, size = 0.5, nrow = 1, nchr = 13),
+  waff(w3, pad = 0, size = 0.5, nrow = 1, nchr = 20),
+  waff(w4, pad = 0, size = 0.5, nrow = 1, nchr = 13)
+)</code></pre>
+<p><img src="figure/topic-term-distributions.Rmd/waffle-topic2-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Which sets are most associated with a topic
+topic_num &lt;- 2
+model_num &lt;- 4
+
+view_topic &lt;- docs[[model_num]] %&gt;%
+  filter(topic == topic_num) %&gt;%
+  arrange(desc(gamma)) %&gt;%
+  head(10) %&gt;%
+  mutate(set_num = document, gamma = round(gamma, 2)) %&gt;%
+  left_join(sets_df, by = &quot;set_num&quot;) %&gt;%
+  mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;%
+  select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;%
+  left_join(theme_df, by = c(&quot;theme_id&quot; = &quot;id&quot;)) %&gt;%
+  mutate(theme_name = name) %&gt;%
+  select(topic, gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
+
+knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, topic_num))</code></pre>
+<table>
+<caption>Sets most associated with topic 2</caption>
+<thead>
+<tr class="header">
+<th align="right">topic</th>
+<th align="right">gamma</th>
+<th align="left">set_name</th>
+<th align="left">set_num</th>
+<th align="left">theme_name</th>
+<th align="right">theme_id</th>
+<th align="right">year</th>
+<th align="right">num_parts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.53</td>
+<td align="left">Kendo Fighter</td>
+<td align="left">71011-12</td>
+<td align="left">Series 15 Minifigures</td>
+<td align="right">554</td>
+<td align="right">2016</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">Volkswagen Beetle (V</td>
+<td align="left">10187-1</td>
+<td align="left">Sculptures</td>
+<td align="right">276</td>
+<td align="right">2008</td>
+<td align="right">1625</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.47</td>
+<td align="left">Galaxy Patrol - Comp</td>
+<td align="left">8831-8</td>
+<td align="left">Series 7 Minifigures</td>
+<td align="right">542</td>
+<td align="right">2012</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.47</td>
+<td align="left">Nitro Muscle</td>
+<td align="left">8194-1</td>
+<td align="left">Tiny Turbos</td>
+<td align="right">120</td>
+<td align="right">2010</td>
+<td align="right">47</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.45</td>
+<td align="left">Rip</td>
+<td align="left">4574-1</td>
+<td align="left">Xalax</td>
+<td align="right">125</td>
+<td align="right">2001</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.41</td>
+<td align="left">Micro Mecha Horse</td>
+<td align="left">MYERNEXO-2</td>
+<td align="left">Nexo Knights</td>
+<td align="right">605</td>
+<td align="right">2016</td>
+<td align="right">24</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.41</td>
+<td align="left">Le Fleuriste Collect</td>
+<td align="left">lfv3-1</td>
+<td align="left">Other</td>
+<td align="right">301</td>
+<td align="right">2010</td>
+<td align="right">350</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.40</td>
+<td align="left">Captain America</td>
+<td align="left">41589-1</td>
+<td align="left">Brickheadz</td>
+<td align="right">610</td>
+<td align="right">2017</td>
+<td align="right">79</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Zombie Businessman</td>
+<td align="left">71010-13</td>
+<td align="left">Series 14 Minifigures</td>
+<td align="right">552</td>
+<td align="right">2015</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.35</td>
+<td align="left">Globert</td>
+<td align="left">41533-1</td>
+<td align="left">Series 4</td>
+<td align="right">584</td>
+<td align="right">2015</td>
+<td align="right">45</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>topic_num &lt;- 2
+plot_topic &lt;- docs[[model_num]] %&gt;%
+  dplyr::filter(topic == topic_num) %&gt;%
+  dplyr::arrange(desc(gamma)) %&gt;%
+  head(20)
+# plot_topic
+
+waffle_prep &lt;- function(document, sets) {
+  document$set_num &lt;- document$document
+  document %&gt;%
+    left_join(sets, by = &quot;set_num&quot;) %&gt;%
+    select(set_num, name, theme, year, rgba) %&gt;%
+    group_by(theme, name, set_num, year) %&gt;%
+    tidyr::nest() %&gt;%
+    mutate(counts = purrr::map(data, table))
+}
+
+w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
+w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
+w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
+w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
+
+waffle::iron(
+  waff(w1, pad = 0, size = 0.5, nrow = 1, nchr = 20),
+  waff(w2, pad = 0, size = 0.2, nrow = 3, nchr = 20),
+  waff(w3, pad = 0, size = 0.5, nrow = 6, nchr = 20),
+  waff(w4, pad = 0, size = 0.5, nrow = 4, nchr = 20)
+)</code></pre>
+<p><img src="figure/topic-term-distributions.Rmd/waffle-topic3-1.png" width="100%" style="display: block; margin: auto;" /></p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
