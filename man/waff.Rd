@@ -4,18 +4,19 @@
 \alias{waff}
 \title{A wrapper of the waffle function}
 \usage{
-waff(data, nrows = 5, size = 0.5, nchr = 20, pad = 0)
+waff(data, nchr, bgcol, rows, size = 0.2)
 }
 \arguments{
-\item{data}{The data}
-
-\item{nrows}{An integer. The umber of rows of the waffle plot}
-
-\item{size}{A double. Controls the border size of individual squares.}
+\item{data}{A tibble with columns, name,theme, year, and counts. 
+The counts column is a column of tables.}
 
 \item{nchr}{An integer. The number of characters in the title.}
 
-\item{pad}{A double. Plot margin padding.}
+\item{bgcol}{A valid}
+
+\item{size}{A double. Controls the border size of individual squares.}
+
+\item{row}{An integer. The number of rows of the waffle plot}
 }
 \value{
 return The plot

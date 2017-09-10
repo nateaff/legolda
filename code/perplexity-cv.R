@@ -1,12 +1,7 @@
-
 # Cross validate model on sequence of topics
 # Perplexity is used as a measure of model fitness
 # The LDA model fitting is compute intensive.
 # Try training on a sample to estimate compute times
-
-# library(purrr)
-# library(tidytext)
-# library(topicmodels)
 
 ## @knitr setup
 
@@ -18,10 +13,10 @@ library(topicmodels)
 # library(purrr)
 from_cache <- TRUE
 
-legolda::load_data(sample_data = FALSE)
-legolda::tidy_colorsets()
-
-# saveRDS(dtm, "dtm.RDS")
+if(!exists("set_colors")){
+  legolda::load_data(sample_data = FALSE)
+  legolda::load_color_tables()
+}
 
 ## @knitr k-fold-cv
 
@@ -87,9 +82,3 @@ if (!from_cache) {
     purrr::map(LDA, x = dtm, control = list(seed = 1))
 }
 
-## @knitr other-evaluation
-
-lda_models <- readRDS("~/devel/R-proj/lego-lda/inst/data/lda_models_all.RDS")
-lda_metrics <- legolda::score_models(lda_models, dtm, topics = ntopics)
-
-plot_lda_scores(lda_metrics, title)

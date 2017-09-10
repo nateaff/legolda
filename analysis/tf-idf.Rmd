@@ -28,29 +28,15 @@ Retrieving set inventory (or sample of) from database. Update to CSV file if inc
 
 Here we compute TF-IDF scores for the all documents and colors. There are only 125 colors, the 'words' in our dictionary but the relative frequency of their occurence varies widely. (See relative frequency plot). 
 
-**TF-IDF Formula** 
-
-\[
-  TF = 3 + 3
-\]
-
-\[
-  IDF =
-\]
-And TF IDF equals
-
-Low and high frequency terms.
 
 ```{r read-tf-idf }
 devtools::load_all()
-load_data(sample_data = FALSE)
 knitr::read_chunk(here::here("code", "tf-idf.R"))
 ```
 
-This code follows the code in [tidytext mining](link-todo.html)
+This code follows the code in [tidytext mining](tidytextmining.com)
 
 ```{r compute-tf-idf }
-
 ```
 
 
@@ -71,10 +57,9 @@ Here are a few sample sets from the top TF-IDF sets.
 ```{r low-tf-idf-plot }
 ```
 
-```{r low-tf-idf-set }
+```{r low-tf-idf-sets1, fig.width = 6, fig.height = 9, out.width = '90%'}
 ```
 
-
-```{r low-tf-idf-plots1, fig.width = 6, fig.height = 9, out.width = '90%'}
+```{r low-tf-idf-sets2, fig.width = 6, fig.height = 9, out.width = '90%'}
 ```
 

@@ -1,5 +1,3 @@
-
-
 # Compute weighted sum of two vectors
  
 #' Compute weighte sum of vectors
@@ -12,7 +10,6 @@ weight <- function(x, y, wt) {
   if (wt > 1 || wt < 0) stop("wt should be a valid probability")
   (wt * x) + (1 - wt) * (x / y)
 }
-
 
 # Takes a model output by topicmodels::LDA and
 # returns the top nterms based on a weighted relevance score
@@ -29,6 +26,12 @@ weight <- function(x, y, wt) {
 #' @return A tibble of the top 'nterms' terms for each topic.
 #' @export
 top_terms <- function(model, lambda, nterms, freq) {
+  
+  # Coerce for tidytext
+  if(class(model) == "LDA_VEM"){
+    class(model) <- "LDA"
+  }
+
   topics <- tidytext::tidy(model, matrix = "beta") %>%
     right_join(freq, by = c("term" = "rgba")) %>%
     mutate(relevance = legolda::weight(beta, percent, lambda)) %>%

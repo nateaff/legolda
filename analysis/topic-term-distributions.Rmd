@@ -11,10 +11,11 @@ output:
 shared across the workflowr files. -->
 ```{r read-chunk, include=FALSE, cache=FALSE}
 knitr::read_chunk(here::here("code", "chunk-options.R"))
+devtools::load_all()
 ```
 
 <!-- Update knitr chunk options -->
-```{r knitr-opts-chunk, include=FALSE}
+```{r knitr-opts-chunk, nclude=FALSE}
 ```
 
 <!-- Insert the date the file was last updated -->
@@ -41,14 +42,11 @@ library(ggplot2)
 ```
 
 ```{r load-data, echo = FALSE, cache = TRUE}
-devtools::load_all()
 load_data(sample_data = FALSE)
 ```
 
 ```{r load-chunk}
-devtools::load_all()
-knitr::read_chunk(here::here("code", "compare-lda.R"))
-
+knitr::read_chunk(here::here("code", "compare-models.R"))
 ```
 
 ```{r color-distribution}

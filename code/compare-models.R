@@ -18,26 +18,9 @@ word_freq <- set_colors %>%
 pal <- unique(set_colors$rgba)
 names(pal) <- unique(pal)
 
-
 # Plot weighted relevance of terms/colors for each topic
-plot_relevance <- function(model, freq, lambda = 0.5, top = 7) {
-  # Does not tidy "LDA_VEM"
-  class(model) <- "LDA"
-
-  topics <- tidytext::tidy(model, matrix = "beta") %>%
-    right_join(freq, by = c("term" = "rgba")) %>%
-    mutate(relevance = legolda::weight(beta, percent, lambda)) %>%
-    arrange(topic, desc(relevance))
-
-  top_terms <- topics %>%
-    group_by(topic) %>%
-    top_n(top, relevance) %>%
-    ungroup() %>%
-    mutate(topic_name = paste0("Topic ", topic)) %>%
-    arrange(topic, -relevance) %>%
-    # Keep colors sorted for faceting
-    mutate(order = row_number())
-
+plot_relevance <- function(top_terms, bgcol) {
+ 
   ntopics <- max(top_terms$topic)
   subtitle <- paste0("Weighted color distribution for ", ntopics, " topics")
 
@@ -52,7 +35,7 @@ plot_relevance <- function(model, freq, lambda = 0.5, top = 7) {
     facet_wrap(~topic, scales = "free", nrow = 5) +
     scale_fill_manual(values = pal) +
     coord_flip() +
-    theme_bar() +
+    theme_bar(bgcol) +
     theme(
       axis.text.x = element_blank(),
       axis.text.y = element_blank(),
@@ -60,9 +43,13 @@ plot_relevance <- function(model, freq, lambda = 0.5, top = 7) {
     )
 }
 
-plot_relevance(lda_models[[2]], word_freq, 0.6, 10)
-plot_relevance(lda_models[[3]], word_freq, 0.6, 10)
-plot_relevance(lda_models[[6]], word_freq, 0.6, 10)
+top_list <- lda_models %>% 
+  map(legolda::top_terms, lambda = 0.7, nterms = 7, freq = word_freq)
+
+bgcol = "#a8a4a2"
+plot_relevance(top_list[[1]], bgcol) # 20 topics
+plot_relevance(top_list[[3]], bgcol) # 40 topics
+plot_relevance(top_list[[5]], bgcol) # 60 topics
 
 ## @knitr topic-sets-table
 docs <- lapply(lda_models, function(x) {
@@ -108,16 +95,17 @@ waffle_prep <- function(document, sets) {
     mutate(counts = purrr::map(data, table))
 }
 
+bgcol <- "#e8e4e2"
 w1 <- waffle_prep(plot_topic[5, ], set_colors)
 w2 <- waffle_prep(plot_topic[6, ], set_colors)
 w3 <- waffle_prep(plot_topic[7, ], set_colors)
 w4 <- waffle_prep(plot_topic[8, ], set_colors)
 
 waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 1, nchr = 20),
-  waff(w2, pad = 0, size = 2, nrow = 1, nchr = 13),
-  waff(w3, pad = 0, size = 0.2, nrow = 4, nchr = 20),
-  waff(w4, pad = 0, size = 0.2, nrow = 3, nchr = 13)
+  waff(w1, size = 0.5, rows = 1, nchr = 20, bgcol = bgcol),
+  waff(w2, size = 2,   rows = 1, nchr = 13, bgcol = bgcol),
+  waff(w3, size = 0.2, rows = 4, nchr = 20, bgcol = bgcol),
+  waff(w4, size = 0.2, rows = 3, nchr = 13, bgcol = bgcol)
 )
 
 ## @knitr topic-sets-table2
@@ -164,10 +152,10 @@ w3 <- waffle_prep(plot_topic[7, ], set_colors)
 w4 <- waffle_prep(plot_topic[8, ], set_colors)
 
 waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 3, nchr = 20),
-  waff(w2, pad = 0, size = 0.5, nrow = 1, nchr = 13),
-  waff(w3, pad = 0, size = 0.5, nrow = 1, nchr = 20),
-  waff(w4, pad = 0, size = 0.5, nrow = 1, nchr = 13)
+  waff(w1,  size = 0.5, rows = 3, nchr = 20, bgcol = bgcol),
+  waff(w2,  size = 0.5, rows = 1, nchr = 13, bgcol = bgcol),
+  waff(w3,  size = 0.5, rows = 1, nchr = 20, bgcol = bgcol),
+  waff(w4,  size = 0.5, rows = 1, nchr = 13, bgcol = bgcol)
 )
 
 
@@ -216,10 +204,10 @@ w3 <- waffle_prep(plot_topic[7, ], set_colors)
 w4 <- waffle_prep(plot_topic[8, ], set_colors)
 
 waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 1, nchr = 20),
-  waff(w2, pad = 0, size = 0.2, nrow = 3, nchr = 20),
-  waff(w3, pad = 0, size = 0.5, nrow = 6, nchr = 20),
-  waff(w4, pad = 0, size = 0.5, nrow = 4, nchr = 20)
+  waff(w1,  size = 0.5, rows = 1, nchr = 20, bgcol = bgcol),
+  waff(w2,  size = 0.2, rows = 3, nchr = 20, bgcol = bgcol),
+  waff(w3,  size = 0.5, rows = 6, nchr = 20, bgcol = bgcol),
+  waff(w4,  size = 0.5, rows = 4, nchr = 20, bgcol = bgcol)
 )
 
 
@@ -270,10 +258,10 @@ w3 <- waffle_prep(plot_topic[7, ], set_colors)
 w4 <- waffle_prep(plot_topic[8, ], set_colors)
 
 waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 3, nchr = 17),
-  waff(w2, pad = 0, size = 0.2, nrow = 3, nchr = 20),
-  waff(w3, pad = 0, size = 0.5, nrow = 2, nchr = 19),
-  waff(w4, pad = 0, size = 0.5, nrow = 1, nchr = 16)
+  waff(w1,  size = 0.5, rows = 3, nchr = 17, bgcol = bgcol),
+  waff(w2,  size = 0.2, rows = 3, nchr = 20, bgcol = bgcol),
+  waff(w3,  size = 0.5, rows = 2, nchr = 19, bgcol = bgcol),
+  waff(w4,  size = 0.5, rows = 1, nchr = 16, bgcol = bgcol)
 )
 
 
@@ -322,10 +310,10 @@ w3 <- waffle_prep(plot_topic[7, ], set_colors)
 w4 <- waffle_prep(plot_topic[8, ], set_colors)
 
 waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 3, nchr = 17),
-  waff(w2, pad = 0, size = 0.2, nrow = 3, nchr = 20),
-  waff(w3, pad = 0, size = 0.5, nrow = 2, nchr = 19),
-  waff(w4, pad = 0, size = 0.5, nrow = 1, nchr = 16)
+  waff(w1,  size = 0.5, rows = 3, nchr = 17, bgcol = bgcol),
+  waff(w2,  size = 0.2, rows = 3, nchr = 20, bgcol = bgcol),
+  waff(w3,  size = 0.5, rows = 2, nchr = 19, bgcol = bgcol),
+  waff(w4,  size = 0.5, rows = 1, nchr = 16, bgcol = bgcol)
 )
 
 ## @knitr topic-sets-table5
@@ -372,8 +360,8 @@ w3 <- waffle_prep(plot_topic[5, ], set_colors)
 w4 <- waffle_prep(plot_topic[6, ], set_colors)
 
 waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 1, nchr = 20),
-  waff(w2, pad = 0, size = 2, nrow = 1, nchr = 13),
-  waff(w3, pad = 0, size = 0.2, nrow = 1, nchr = 20),
-  waff(w4, pad = 0, size = 0.2, nrow = 1, nchr = 13)
+  waff(w1,  size = 0.5, rows = 1, nchr = 20, bgcol = bgcol),
+  waff(w2,  size = 2, rows = 1, nchr = 13, bgcol = bgcol),
+  waff(w3,  size = 0.2, rows = 1, nchr = 20, bgcol = bgcol),
+  waff(w4,  size = 0.2, rows = 1, nchr = 13, bgcol = bgcol)
 )

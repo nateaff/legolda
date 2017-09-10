@@ -14,10 +14,8 @@ So finally we'll settle on the topic model with 30 topics and look at a couple o
 
 ```{r load-chunk1}
 devtools::load_all()
-knitr::read_chunk(here::here("code", "compare-clusters.R"))
-```
+knitr::read_chunk(here::here("code", "final-model-plots.R"))
 
-```{r plot-cluster}
 ```
 
 ```{r plot-topic-distribution, eval = TRUE, fig.width = 9, fig.height = 5}
@@ -28,10 +26,12 @@ knitr::read_chunk(here::here("code", "compare-clusters.R"))
 
 ## Color distributions by topic 
 
-TODO: Paste in later.
+```{r load-chunk2}
+knitr::read_chunk(here::here("code", "final-model-grid.R"))
+```
 
-![final-topics](~/devel/R-proj/legolda/docs/figure/final-topic.png)
-
+```{r plot-final-topics, echo = FALSE, eval = TRUE, fig.width = 9, fig.height = 12}
+```
 
 
 

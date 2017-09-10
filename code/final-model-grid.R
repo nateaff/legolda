@@ -1,8 +1,10 @@
+# Waffle plots for the final model 
 
-## @knitr plot-final-topcis
-library(legolda)
+## @knitr plot-final-topics
 library(forcats)
 library(purrr)
+library(grid)
+library(gridExtra) 
 
 if(!exists("set_colors")){
   cat("holler \n")
@@ -41,39 +43,23 @@ tp <- top_colors %>% count(topic, term) %>%
   mutate(name = fct_inorder(factor(paste0("Topic ", topic))), 
     counts = n)
 
-waff2 <- function(data, nrows = 6, size = 0.5, nchr = 20, pad = 0) {
-  bgcol <- "#c8c4c2"
-  with(
-    data,
-    waffle2(
-      counts,
-      colors = term,
-      rows = nrows,
-      size = size,
-      pad = pad,
-      legend_pos = "",
-      title = name, 
-      tile_color = bgcol
-    ) + theme_waff(bgcol)
-  )
-}
+tpnames <- get_topic_names(lda_models[[model_num]])
+tp$name <- tpnames$topic_name
 
-
-waff_topic <- function(data, ntopic) {
+waff_topic <- function(data, ntopic, col) {
   p <- data %>% filter(topic == ntopic) 
-  waff2(p, nrows = 5, size = 0.3, nchr = 20)
+  wp <- waffle2(
+          p$counts, 
+          title = p$name, 
+          colors = p$term, 
+          rows = 5, size = 0.3, 
+          grout_color = col) 
+  wp + theme_waff(col)
 }
-
-# library(grid)
 
 bgcol <- "#c8c4c2"
 
-pp <- lapply(1:ntopics, function(x) waff_topic(data = tp, ntopic = x))
-
-
-jpeg(here::here("docs", "figure", "final-topic.jpg"), height = 9, width = 12)
+pp <- lapply(1:ntopics, function(x) waff_topic(data = tp, ntopic = x, col = bgcol))
 
 grid.draw(grobTree(rectGrob(gp=gpar(fill= bgcol, lwd=0)),
-   do.call(gridExtra::grid.arrange, c(pp, ncol = 5) )))
-
-dev.off()
+   do.call(grid.arrange, c(pp, ncol = 5) )))

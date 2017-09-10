@@ -323,16 +323,8 @@ div.tocify {
 <p>So finally we’ll settle on the topic model with 30 topics and look at a couple of summaries based on that topic.</p>
 <pre class="r"><code>devtools::load_all()</code></pre>
 <pre><code>## Loading legolda</code></pre>
-<pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;compare-clusters.R&quot;))</code></pre>
-<pre class="r"><code># The remaining files rely on this one 
-# TODO: Move this set of plots elsewhere
-library(forcats)
-library(purrr)
-library(legolda)
-
-if(!exists(&quot;set_colors&quot;)){
-  load_data(sample_data = FALSE)
-}</code></pre>
+<pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;final-model-plots.R&quot;))</code></pre>
+<pre class="r"><code>library(dplyr)</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;dplyr&#39;</code></pre>
 <pre><code>## The following objects are masked from &#39;package:stats&#39;:
@@ -341,62 +333,37 @@ if(!exists(&quot;set_colors&quot;)){
 <pre><code>## The following objects are masked from &#39;package:base&#39;:
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
-<pre><code>## Connecting to database 
+<pre class="r"><code>library(ggplot2)
+# Set model num. Models: 20, 30, 40, 50, 60, 75, 100
+load_color_tables(sample_data = FALSE)</code></pre>
+<pre><code>## Loading table &#39;set_colors&#39;Connecting to database 
 ## Assigning themes to theme_df 
 ## Assigning sets to sets_df 
+## Retrieving dataset form db 
 ## Disconnecting from database 
 ## Assigning full set set inventories to &#39;set_colors&#39;</code></pre>
-<pre class="r"><code>lda_models &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_models_all.RDS&quot;))
+<pre><code>## Joining, by = &quot;set_num&quot;</code></pre>
+<pre><code>## Assigning values to total_words
+## Assigning tidy set and color dataframe to &#39;set_words&#39; 
+## Creating sparse document term matrix (tm-package) and assigning to &#39;dtm&#39;</code></pre>
+<pre class="r"><code>lda_models &lt;- get_lda_models()
 
 model_num = 3
-# Get top 2 colors for each topic
-lda_models &lt;- lda_models %&gt;%
-  purrr::map(function(x) {
-    class(x) &lt;- &quot;LDA&quot;
-    x
-  }) 
+topic_num = get_topic_numbers(lda_models)[model_num]
 
-# Total frequency used in relevance score
-word_freq &lt;- set_colors %&gt;%
-  count(rgba) %&gt;%
-  mutate(percent = n / nrow(set_colors))
+# Label sets by top topic probability
+lda_clust &lt;- get_lda_clusters(lda_models)
 
-lambda = 0.5
-nterms = 2 
 
-top_colors &lt;- top_terms(lda_models[[model_num]], lambda, nterms, word_freq) %&gt;% 
-  mutate(topic_name = forcats::fct_inorder(factor(topic_name)))
+set_num &lt;- names(lda_clust[model_num, ]$clust[[1]])
 
-# Blend two hex colors  
-blend &lt;- function(df, scale = 100){ 
-  pos &lt;- df$beta[2] * scale
-  colorRampPalette(c(df$term[1], df$term[2]))(100)[2]
-}
-
-# Generate palette that is a blend of the top two  
-topic_pal &lt;- top_colors %&gt;% split(.$topic) %&gt;% 
-  purrr::map(blend) %&gt;% unlist
-
-vec_2_function(topic_pal)
-devtools::load_all()</code></pre>
-<pre><code>## Loading legolda</code></pre>
-<pre class="r"><code>library(legolda)
-library(forcats)
-library(dplyr)
-library(ggplot2) 
-
-model_num = 3
-
-# Assumes topic_pal is available
-lda_clust &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_clusters.RDS&quot;))
-
-# Model with 30 clusters
-set_clust &lt;- tibble(set_num = names(lda_clust[[model_num]]), 
-              topic_id = lda_clust[[model_num]]) %&gt;% 
-            left_join(sets_df) %&gt;% 
-            arrange(topic_id) %&gt;%  
-            # mutate(topic_name = fct_inorder(factor(paste0(&quot;Topic &quot;, topic_id)))) %&gt;%
-            mutate(topic_id = fct_inorder(factor(topic_id)))</code></pre>
+set_clust &lt;- tidyr::unnest(lda_clust, clust) %&gt;% 
+              mutate(topic_id = clust) %&gt;% 
+              filter(k == 40) %&gt;% 
+              mutate(set_num = set_num) %&gt;%
+              left_join(sets_df) %&gt;% 
+              arrange(topic_id) %&gt;%  
+              mutate(topic_id = forcats::fct_inorder(factor(topic_id)))</code></pre>
 <pre><code>## Joining, by = &quot;set_num&quot;</code></pre>
 <pre class="r"><code>topic_pal &lt;- topic_palette()
 
@@ -410,31 +377,30 @@ gg &lt;- set_clust %&gt;% ggplot(aes(x = topic_id, y = n,
           fill = topic_id, 
           group = topic_id)) 
 gg &lt;- gg + geom_col(size = 0.8)  
-# scale_color_manual(values = topic_pal) +
 gg &lt;- gg + scale_fill_manual(values = topic_pal) 
-# gg &lt;- gg + scale_x_continuous(breaks = set_clust$topic_id )  
 gg &lt;- gg + labs(x = &quot;Topic number&quot;, 
                 y = &quot;Sets in topic&quot;, 
                 title = &quot;Color topic frequency&quot;) 
 gg &lt;- gg + theme_bar(bgcol = &quot;#c8c6c4&quot;) 
-# gg &lt;- gg + coord_flip() 
 gg &lt;- gg + theme(legend.position = &quot;none&quot;) 
 gg &lt;- gg + theme(panel.grid.major.x = element_blank())     
 gg &lt;- gg + theme(panel.grid.major.y = element_line(color = &quot;#f8f6f4&quot;, size = 0.2))
 gg</code></pre>
 <p><img src="final-model_files/figure-html/plot-topic-distribution-1.png" width="864" /></p>
 <pre class="r"><code>model_num = 3
+topic_num = get_topic_numbers(lda_models)[model_num]
 
 # Assumes topic_pal is available
-lda_clust &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_clusters.RDS&quot;))
+lda_clust &lt;- lda_clust &lt;- get_lda_clusters(lda_models)
 
-# Model with 30 clusters
-set_clust &lt;- tibble(set_num = names(lda_clust[[model_num]]), 
-              topic_id = lda_clust[[model_num]]) %&gt;% 
-            left_join(sets_df) %&gt;% 
-            arrange(topic_id) %&gt;%  
-            # mutate(topic_name = fct_inorder(factor(paste0(&quot;Topic &quot;, topic_id)))) %&gt;%
-            mutate(topic_id = fct_inorder(factor(topic_id)))</code></pre>
+# Model with 50 clusters
+set_clust &lt;- tidyr::unnest(lda_clust, clust) %&gt;% 
+              mutate(topic_id = clust) %&gt;% 
+              filter(k == topic_num) %&gt;% 
+              mutate(set_num = set_num) %&gt;%
+              left_join(sets_df) %&gt;% 
+              arrange(topic_id) %&gt;%  
+              mutate(topic_id = forcats::fct_inorder(factor(topic_id)))</code></pre>
 <pre><code>## Joining, by = &quot;set_num&quot;</code></pre>
 <pre class="r"><code>topic_pal &lt;- topic_palette()
 
@@ -459,11 +425,13 @@ theme(legend.position = &quot;none&quot;)</code></pre>
 </div>
 <div id="color-distributions-by-topic" class="section level2">
 <h2>Color distributions by topic</h2>
-<p>TODO: Paste in later.</p>
-<div class="figure">
-<img src="/home/nathanael/devel/R-proj/legolda/docs/figure/final-topic.png" alt="final-topics" />
-<p class="caption">final-topics</p>
-</div>
+<pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;final-model-grid.R&quot;))</code></pre>
+<pre><code>## 
+## Attaching package: &#39;gridExtra&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine</code></pre>
+<p><img src="final-model_files/figure-html/plot-final-topics-1.png" width="864" /></p>
 </div>
 
 

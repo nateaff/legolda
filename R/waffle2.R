@@ -69,7 +69,7 @@
 waffle2 <- function(parts, rows=10, keep=TRUE, xlab=NULL, title=NULL, colors=NA,
                     size=2, flip=FALSE, reverse=FALSE, equal=TRUE, pad=0,
                     use_glyph=FALSE, glyph_size=12, legend_pos="right",
-                    tile_color = "white") {
+                    grout_color = "white") {
   if (inherits(parts, "data.frame")) {
     setNames(
       unlist(parts[, 2], use.names = FALSE),
@@ -120,12 +120,14 @@ waffle2 <- function(parts, rows=10, keep=TRUE, xlab=NULL, title=NULL, colors=NA,
 
   if (flip) gg <- ggplot(dat, aes(x = y, y = x))
 
-  gg <- gg + theme_bw()
+  gg <- gg + theme_bw()  
+  gg <- gg + theme_waff(grout_color)
+ 
 
   # make the plot
 
   if (inherits(use_glyph, "logical")) {
-    gg <- gg + geom_tile(aes(fill = value), color = tile_color, size = size)
+    gg <- gg + geom_tile(aes(fill = value), color = grout_color, size = size)
     gg <- gg + scale_fill_manual(
       name = "",
       values = colors,
@@ -208,142 +210,29 @@ waffle2 <- function(parts, rows=10, keep=TRUE, xlab=NULL, title=NULL, colors=NA,
 #' A wrapper of the waffle function
 #'
 #'
-#' @param data The data
-#' @param nrows An integer. The umber of rows of the waffle plot
+#' @param data A tibble with columns, name,theme, year, and counts. 
+#'    The counts column is a column of tables.
+#' @param row An integer. The number of rows of the waffle plot
 #' @param size A double. Controls the border size of individual squares.
 #' @param nchr An integer. The number of characters in the title.
-#' @param pad A double. Plot margin padding.
+#' @param bgcol A valid 
 #' @return return The plot
 #' @export
-waff <- function(data, nrows = 5, size = 0.5, nchr = 20, pad = 0) {
-  bgcol <- "#e8e4e2"
-  with(
-    data,
-    waffle2(
-      counts[[1]],
-      colors = names(counts[[1]]),
-      rows = nrows,
-      size = size,
-      pad = pad,
-      legend_pos = "",
-      title = paste0(
-        stringr::str_sub(name[[1]], 1, nchr),
-        ", ", theme, " theme",
-        ", (", year[[1]], ")"
-      ),
-      xlab = "1 square = 1 brick",
-      tile_color = bgcol
-    ) + theme_waff()
-  )
-}
-
-
-# Themes
+waff <- function(data, nchr, bgcol, rows, size = 0.2) {
  
-#' A ggplot2 theme
-#'
-#'
-#' @return return
-#' @export
-theme_waff <- function(bgcol = "#e8e4e2") {
-  theme_minimal() +
-    theme(
-      legend.position = "none",
-      plot.background = element_rect(fill = bgcol, color = bgcol),
-      panel.background = element_rect(fill = bgcol, color = bgcol),
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      # panel.spacing = unit(1.2, "lines"),
-      plot.title = element_text(
-        family = "Lato",
-        size = 14,
-        face = "bold",
-        color = "gray5"
-      ),
-      plot.subtitle = element_text(
-        color = "gray10",
-        face = "plain",
-        size = 11
-      ),
-      axis.title = element_text(
-        family = "Roboto Condensed",
-        size = 11 ,
-        color = "gray15"
-      ),
-      axis.text = element_blank(),
-      plot.caption = element_text(
-        family = "Roboto Condensed",
-        face = "italic",
-        size = 9,
-        color = "gray25"
-      )
-    )
+  title  <- paste0( stringr::str_sub(data$name, 1, nchr),
+              ", ", data$theme, " theme",
+              ", (", data$year, ")")
+
+  pal <- names(data$counts[[1]])
+  counts <- data$counts[[1]]
+
+  wp <- waffle2(counts, 
+          title = title, 
+          colors = pal,  
+          rows = rows, 
+          size = 0.3, 
+          grout_color = bgcol) 
+   wp + theme_waff(bgcol)
 }
 
-
-#' A ggplot2 theme
-#'
-#'
-#' @return return
-#' @export
-theme_bar <- function(bgcol = "#e8e4e2", grid_col = "gray25") {
-  theme_minimal() +
-    theme(
-      legend.position = "none",
-      plot.background = element_rect(fill = bgcol, color = bgcol),
-      panel.background = element_rect(fill = bgcol, color = bgcol),
-      panel.grid.minor.y = element_blank(),
-      panel.grid.major.y = element_blank(),
-      panel.grid.minor.x = element_blank(),
-      panel.grid.major.x = element_line(color = grid_col, size = 0.15),
-      # panel.spacing = unit(1.2, "lines"),
-      plot.title = element_text(
-        family = "Lato",
-        size = 16,
-        face = "bold",
-        color = "gray5"
-      ),
-      plot.subtitle = element_text(
-        color = "gray10",
-        face = "plain",
-        size = 10
-      ),
-      axis.title = element_text(
-        family = "Roboto Condensed",
-        size = 9,
-        color = "gray15"
-      ),
-      # axis.text = element_blank(),
-      plot.caption = element_text(
-        family = "Roboto Condensed",
-        face = "italic",
-        size = 9,
-        color = "gray25"
-      )
-    )
-}
-
-
-#' A ggplot2 theme
-#'
-#'
-#' @return return
-#' @export
-theme_scatter <- function(bgcol = "#e8e4e2", grid_col = "gray25") {
-  theme_bar(bgcol) +
-    theme(
-      legend.position = "bottom",
-      legend.text = element_text(
-        family = "Roboto Condensed",
-        size = 9,
-        color = "gray15"),
-      legend.title = element_text(
-        family = "Roboto Condensed",
-        size = 9,
-        color = "gray5"),
-      panel.grid.minor.y = element_blank(),
-      panel.grid.major.y = element_line(color = grid_col, size = 0.15),
-      panel.grid.minor.x = element_blank(),
-      panel.grid.major.x = element_line(color = grid_col, size = 0.15)
-    )
-}

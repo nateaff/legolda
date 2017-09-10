@@ -321,11 +321,34 @@ div.tocify {
 <!-- The file analysis/chunks.R contains chunks that define default settings
 shared across the workflowr files. -->
 <!-- Update knitr chunk options -->
+<pre class="r"><code># Update knitr chunk options
+# https://yihui.name/knitr/options/#chunk-options
+knitr::opts_chunk$set(
+  cache = FALSE,
+  # dependencies 
+  autodep = TRUE, 
+  # Don&#39;t rerun if only comments changed
+  cache.comments = FALSE,
+  cache.lazy = TRUE, 
+  echo = TRUE, 
+  eval = TRUE,
+  comment = NA,
+  fig.align = &quot;center&quot;,
+  tidy = TRUE,
+  fig.width = 8,
+  fig.height = 6,
+  out.width = &quot;100%&quot;,
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = &quot;center&quot;,
+  fig.path = paste0(&quot;figure/&quot;, knitr::current_input(), &quot;/&quot;)
+)</code></pre>
 <!-- Insert the date the file was last updated -->
-<p><strong>Last updated:</strong> 2017-09-04</p>
+<p><strong>Last updated:</strong> 2017-09-09</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> 35191de</p>
+<p><strong>Code version:</strong> c28ce3e</p>
 <!-- Add your analysis here -->
 <div id="color-distributions-over-topics" class="section level1">
 <h1>Color distributions over topics</h1>
@@ -339,96 +362,61 @@ Assigning themes to theme_df
 Assigning sets to sets_df 
 Disconnecting from database 
 Assigning full set set inventories to &#39;set_colors&#39; </code></pre>
-<pre class="r"><code>devtools::load_all()
-knitr::read_chunk(here::here(&quot;code&quot;, &quot;compare-lda.R&quot;))</code></pre>
+<pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;compare-models.R&quot;))</code></pre>
 <pre class="r"><code>lda_models &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_models_all.RDS&quot;))
 
-set_topics &lt;- lda_models %&gt;%
-  purrr::map(function(x) {
+set_topics &lt;- lda_models %&gt;% purrr::map(function(x) {
     class(x) &lt;- &quot;LDA&quot;
     x
-  }) %&gt;%
-  purrr::map(tidytext::tidy, matrix = &quot;gamma&quot;)
+}) %&gt;% purrr::map(tidytext::tidy, matrix = &quot;gamma&quot;)
 
 # Total frequency used in relevance score
-word_freq &lt;- set_colors %&gt;%
-  count(rgba) %&gt;%
-  mutate(percent = n / nrow(set_colors))
+word_freq &lt;- set_colors %&gt;% count(rgba) %&gt;% mutate(percent = n/nrow(set_colors))
 
 # Create palette
 pal &lt;- unique(set_colors$rgba)
 names(pal) &lt;- unique(pal)
 
-
 # Plot weighted relevance of terms/colors for each topic
-plot_relevance &lt;- function(model, freq, lambda = 0.5, top = 7) {
-  # Does not tidy &quot;LDA_VEM&quot;
-  class(model) &lt;- &quot;LDA&quot;
-
-  topics &lt;- tidytext::tidy(model, matrix = &quot;beta&quot;) %&gt;%
-    right_join(freq, by = c(&quot;term&quot; = &quot;rgba&quot;)) %&gt;%
-    mutate(relevance = legolda::weight(beta, percent, lambda)) %&gt;%
-    arrange(topic, desc(relevance))
-
-  top_terms &lt;- topics %&gt;%
-    group_by(topic) %&gt;%
-    top_n(top, relevance) %&gt;%
-    ungroup() %&gt;%
-    mutate(topic_name = paste0(&quot;Topic &quot;, topic)) %&gt;%
-    arrange(topic, -relevance) %&gt;%
-    # Keep colors sorted for faceting
-    mutate(order = row_number())
-
-  ntopics &lt;- max(top_terms$topic)
-  subtitle &lt;- paste0(&quot;Weighted color distribution for &quot;, ntopics, &quot; topics&quot;)
-
-  top_terms %&gt;%
-    ggplot(aes(x = -order, y = relevance, fill = term)) +
-    labs(
-      x = &quot;&quot;, y = &quot;Relevance&quot;,
-      title = &quot;Lego color topics&quot;,
-      subtitle = subtitle
-    ) +
-    geom_col(show.legend = FALSE) +
-    facet_wrap(~topic, scales = &quot;free&quot;, nrow = 5) +
-    scale_fill_manual(values = pal) +
-    coord_flip() +
-    theme_bar() +
-    theme(
-      axis.text.x = element_blank(),
-      axis.text.y = element_blank(),
-      panel.grid.major.x = element_blank()
-    )
+plot_relevance &lt;- function(top_terms, bgcol) {
+    
+    ntopics &lt;- max(top_terms$topic)
+    subtitle &lt;- paste0(&quot;Weighted color distribution for &quot;, ntopics, &quot; topics&quot;)
+    
+    top_terms %&gt;% ggplot(aes(x = -order, y = relevance, fill = term)) + labs(x = &quot;&quot;, 
+        y = &quot;Relevance&quot;, title = &quot;Lego color topics&quot;, subtitle = subtitle) + 
+        geom_col(show.legend = FALSE) + facet_wrap(~topic, scales = &quot;free&quot;, 
+        nrow = 5) + scale_fill_manual(values = pal) + coord_flip() + theme_bar(bgcol) + 
+        theme(axis.text.x = element_blank(), axis.text.y = element_blank(), 
+            panel.grid.major.x = element_blank())
 }
 
-plot_relevance(lda_models[[2]], word_freq, 0.6, 10)</code></pre>
+top_list &lt;- lda_models %&gt;% map(legolda::top_terms, lambda = 0.7, nterms = 7, 
+    freq = word_freq)
+
+bgcol = &quot;#a8a4a2&quot;
+plot_relevance(top_list[[1]], bgcol)  # 20 topics</code></pre>
 <p><img src="figure/topic-term-distributions.Rmd/color-distribution-1.png" width="100%" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>plot_relevance(lda_models[[3]], word_freq, 0.6, 10)</code></pre>
+<pre class="r"><code>plot_relevance(top_list[[3]], bgcol)  # 40 topics</code></pre>
 <p><img src="figure/topic-term-distributions.Rmd/color-distribution-2.png" width="100%" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>plot_relevance(lda_models[[6]], word_freq, 0.6, 10)</code></pre>
+<pre class="r"><code>plot_relevance(top_list[[5]], bgcol)  # 60 topics</code></pre>
 <p><img src="figure/topic-term-distributions.Rmd/color-distribution-3.png" width="100%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>docs &lt;- lapply(lda_models, function(x) {
-  class(x) &lt;- &quot;LDA&quot;
-  x
-}) %&gt;%
-
+    class(x) &lt;- &quot;LDA&quot;
+    x
+}) %&gt;% 
 purrr::map(tidytext::tidy, matrix = &quot;gamma&quot;)
 
 # Which sets are most associated with a topic
 topic_num &lt;- 37
 model_num &lt;- 4
 
-view_topic &lt;- docs[[model_num]] %&gt;%
-  filter(topic == topic_num) %&gt;%
-  arrange(desc(gamma)) %&gt;%
-  head(10) %&gt;%
-  mutate(set_num = document, gamma = round(gamma, 2)) %&gt;%
-  left_join(sets_df, by = &quot;set_num&quot;) %&gt;%
-  mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;%
-  select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;%
-  left_join(theme_df, by = c(&quot;theme_id&quot; = &quot;id&quot;)) %&gt;%
-  mutate(theme_name = name) %&gt;%
-  select(topic, gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
+view_topic &lt;- docs[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
+    head(10) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
+    by = &quot;set_num&quot;) %&gt;% mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;% 
+    select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;% left_join(theme_df, 
+    by = c(theme_id = &quot;id&quot;)) %&gt;% mutate(theme_name = name) %&gt;% select(topic, 
+    gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
 
 knitr::kable(view_topic, caption = &quot;Sets most associated with topic 37&quot;)</code></pre>
 <table>
@@ -549,51 +537,40 @@ knitr::kable(view_topic, caption = &quot;Sets most associated with topic 37&quot
 </tbody>
 </table>
 <pre class="r"><code>library(waffle)
-plot_topic &lt;- docs[[model_num]] %&gt;%
-  dplyr::filter(topic == topic_num) %&gt;%
-  dplyr::arrange(desc(gamma)) %&gt;%
-  head(20)
+plot_topic &lt;- docs[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% dplyr::arrange(desc(gamma)) %&gt;% 
+    head(20)
 
 
 waffle_prep &lt;- function(document, sets) {
-  document$set_num &lt;- document$document
-  document %&gt;%
-    left_join(sets, by = &quot;set_num&quot;) %&gt;%
-    select(set_num, name, theme, year, rgba) %&gt;%
-    group_by(theme, name, set_num, year) %&gt;%
-    tidyr::nest() %&gt;%
-    mutate(counts = purrr::map(data, table))
+    document$set_num &lt;- document$document
+    document %&gt;% left_join(sets, by = &quot;set_num&quot;) %&gt;% select(set_num, name, theme, 
+        year, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
+        mutate(counts = purrr::map(data, table))
 }
 
+bgcol &lt;- &quot;#e8e4e2&quot;
 w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
 w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
 w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
 w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
 
-waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 1, nchr = 20),
-  waff(w2, pad = 0, size = 2, nrow = 1, nchr = 13),
-  waff(w3, pad = 0, size = 0.2, nrow = 4, nchr = 20),
-  waff(w4, pad = 0, size = 0.2, nrow = 3, nchr = 13)
-)</code></pre>
+waffle::iron(waff(w1, size = 0.5, rows = 1, nchr = 20, bgcol = bgcol), waff(w2, 
+    size = 2, rows = 1, nchr = 13, bgcol = bgcol), waff(w3, size = 0.2, rows = 4, 
+    nchr = 20, bgcol = bgcol), waff(w4, size = 0.2, rows = 3, nchr = 13, bgcol = bgcol))</code></pre>
 <p><img src="figure/topic-term-distributions.Rmd/waffle-topic-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># Which sets are most associated with a topic
 topic_num &lt;- 19
 model_num &lt;- 4
 
-view_topic &lt;- docs[[model_num]] %&gt;%
-  filter(topic == topic_num) %&gt;%
-  arrange(desc(gamma)) %&gt;%
-  head(10) %&gt;%
-  mutate(set_num = document, gamma = round(gamma, 2)) %&gt;%
-  left_join(sets_df, by = &quot;set_num&quot;) %&gt;%
-  mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;%
-  select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;%
-  left_join(theme_df, by = c(&quot;theme_id&quot; = &quot;id&quot;)) %&gt;%
-  mutate(theme_name = name) %&gt;%
-  select(topic, gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
+view_topic &lt;- docs[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
+    head(10) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
+    by = &quot;set_num&quot;) %&gt;% mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;% 
+    select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;% left_join(theme_df, 
+    by = c(theme_id = &quot;id&quot;)) %&gt;% mutate(theme_name = name) %&gt;% select(topic, 
+    gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
 
-knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, topic_num))</code></pre>
+knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, 
+    topic_num))</code></pre>
 <table>
 <caption>Sets most associated with topic 19</caption>
 <thead>
@@ -712,20 +689,15 @@ knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic 
 </tbody>
 </table>
 <pre class="r"><code>topic_num &lt;- 19
-plot_topic &lt;- docs[[model_num]] %&gt;%
-  dplyr::filter(topic == topic_num) %&gt;%
-  dplyr::arrange(desc(gamma)) %&gt;%
-  head(20)
+plot_topic &lt;- docs[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% dplyr::arrange(desc(gamma)) %&gt;% 
+    head(20)
 # plot_topic
 
 waffle_prep &lt;- function(document, sets) {
-  document$set_num &lt;- document$document
-  document %&gt;%
-    left_join(sets, by = &quot;set_num&quot;) %&gt;%
-    select(set_num, name, theme, year, rgba) %&gt;%
-    group_by(theme, name, set_num, year) %&gt;%
-    tidyr::nest() %&gt;%
-    mutate(counts = purrr::map(data, table))
+    document$set_num &lt;- document$document
+    document %&gt;% left_join(sets, by = &quot;set_num&quot;) %&gt;% select(set_num, name, theme, 
+        year, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
+        mutate(counts = purrr::map(data, table))
 }
 
 w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
@@ -733,30 +705,23 @@ w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
 w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
 w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
 
-waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 3, nchr = 20),
-  waff(w2, pad = 0, size = 0.5, nrow = 1, nchr = 13),
-  waff(w3, pad = 0, size = 0.5, nrow = 1, nchr = 20),
-  waff(w4, pad = 0, size = 0.5, nrow = 1, nchr = 13)
-)</code></pre>
+waffle::iron(waff(w1, size = 0.5, rows = 3, nchr = 20, bgcol = bgcol), waff(w2, 
+    size = 0.5, rows = 1, nchr = 13, bgcol = bgcol), waff(w3, size = 0.5, rows = 1, 
+    nchr = 20, bgcol = bgcol), waff(w4, size = 0.5, rows = 1, nchr = 13, bgcol = bgcol))</code></pre>
 <p><img src="figure/topic-term-distributions.Rmd/waffle-topic2-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># Which sets are most associated with a topic
 topic_num &lt;- 2
 model_num &lt;- 4
 
-view_topic &lt;- docs[[model_num]] %&gt;%
-  filter(topic == topic_num) %&gt;%
-  arrange(desc(gamma)) %&gt;%
-  head(10) %&gt;%
-  mutate(set_num = document, gamma = round(gamma, 2)) %&gt;%
-  left_join(sets_df, by = &quot;set_num&quot;) %&gt;%
-  mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;%
-  select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;%
-  left_join(theme_df, by = c(&quot;theme_id&quot; = &quot;id&quot;)) %&gt;%
-  mutate(theme_name = name) %&gt;%
-  select(topic, gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
+view_topic &lt;- docs[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
+    head(10) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
+    by = &quot;set_num&quot;) %&gt;% mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;% 
+    select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;% left_join(theme_df, 
+    by = c(theme_id = &quot;id&quot;)) %&gt;% mutate(theme_name = name) %&gt;% select(topic, 
+    gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
 
-knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, topic_num))</code></pre>
+knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, 
+    topic_num))</code></pre>
 <table>
 <caption>Sets most associated with topic 2</caption>
 <thead>
@@ -875,20 +840,15 @@ knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic 
 </tbody>
 </table>
 <pre class="r"><code>topic_num &lt;- 2
-plot_topic &lt;- docs[[model_num]] %&gt;%
-  dplyr::filter(topic == topic_num) %&gt;%
-  dplyr::arrange(desc(gamma)) %&gt;%
-  head(20)
+plot_topic &lt;- docs[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% dplyr::arrange(desc(gamma)) %&gt;% 
+    head(20)
 # plot_topic
 
 waffle_prep &lt;- function(document, sets) {
-  document$set_num &lt;- document$document
-  document %&gt;%
-    left_join(sets, by = &quot;set_num&quot;) %&gt;%
-    select(set_num, name, theme, year, rgba) %&gt;%
-    group_by(theme, name, set_num, year) %&gt;%
-    tidyr::nest() %&gt;%
-    mutate(counts = purrr::map(data, table))
+    document$set_num &lt;- document$document
+    document %&gt;% left_join(sets, by = &quot;set_num&quot;) %&gt;% select(set_num, name, theme, 
+        year, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
+        mutate(counts = purrr::map(data, table))
 }
 
 w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
@@ -896,12 +856,9 @@ w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
 w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
 w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
 
-waffle::iron(
-  waff(w1, pad = 0, size = 0.5, nrow = 1, nchr = 20),
-  waff(w2, pad = 0, size = 0.2, nrow = 3, nchr = 20),
-  waff(w3, pad = 0, size = 0.5, nrow = 6, nchr = 20),
-  waff(w4, pad = 0, size = 0.5, nrow = 4, nchr = 20)
-)</code></pre>
+waffle::iron(waff(w1, size = 0.5, rows = 1, nchr = 20, bgcol = bgcol), waff(w2, 
+    size = 0.2, rows = 3, nchr = 20, bgcol = bgcol), waff(w3, size = 0.5, rows = 6, 
+    nchr = 20, bgcol = bgcol), waff(w4, size = 0.5, rows = 4, nchr = 20, bgcol = bgcol))</code></pre>
 <p><img src="figure/topic-term-distributions.Rmd/waffle-topic3-1.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 

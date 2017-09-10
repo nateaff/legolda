@@ -321,8 +321,8 @@ div.tocify {
 <!-- The file analysis/chunks.R contains chunks that define default settings
 shared across the workflowr files. -->
 <!-- Insert last udpate and git version-->
-<p><strong>Last updated:</strong> 2017-09-05</p>
-<p><strong>Code version:</strong> 35191de</p>
+<p><strong>Last updated:</strong> 2017-09-09</p>
+<p><strong>Code version:</strong> c28ce3e</p>
 <div id="how-many-themes" class="section level1">
 <h1>How many themes?</h1>
 <p>What number of color themes are there in the Lego dataset? LDA can be thought of as an unsupervised clustering algorithm. Like K-means, the number of clusters or topics is set by the user. In our case, the Lego sets are associated with a theme and some of those themes are associated with a parent theme. It is possible these themes can serve as a category label for the color themes we plan on discovering with the LDA algorithm. Without further exploration we don’t know, however, whether color themes match the lego theme categories. In fact, there are some themes, like the “Supplemental”, that we can probably expect to have no color theme.</p>
@@ -330,9 +330,10 @@ shared across the workflowr files. -->
 <pre><code>Connecting to database 
 Assigning themes to theme_df 
 Assigning sets to sets_df 
+Retrieving dataset form db 
 Disconnecting from database 
-Assigning full set set inventories to &#39;set_colors&#39; </code></pre>
-<pre><code>Assigning values to total_words
+Assigning full set set inventories to &#39;set_colors&#39; 
+Assigning values to total_words
 Assigning tidy set and color dataframe to &#39;set_words&#39; 
 Creating sparse document term matrix (tm-package) and assigning to &#39;dtm&#39; </code></pre>
 </div>
@@ -347,55 +348,43 @@ Creating sparse document term matrix (tm-package) and assigning to &#39;dtm&#39;
 <h1>Perplexity</h1>
 <p>Definition of perplexity.</p>
 <p>The average perplexity scores level off at around 40-50 topics. The perplexity scores for sets get worse as we add more than 50 topics although at least one training set improves. Based only on the perplexity scores I’d probably settle with a model with 50 topics.</p>
-<pre class="r"><code>perplexities %&gt;%
-  ggplot(aes(n_topic, perplexity)) +
-  geom_point(aes(colour = fold), size = 2) +
-  geom_line(aes(n_topic, perplexity, group = fold, colour = fold)) +
-  scale_color_manual(values = pal21(), guide = guide_legend(title = &quot;Folds&quot;)) +
-  geom_smooth(se = FALSE, colour = &quot;#2f2f2a&quot;) +
-  scale_x_continuous(breaks = perplexities$n_topic) +
-  labs(
-    x = &quot;Number of topics&quot;, y = &quot;Perplexity&quot;,
-    title = &quot;Perplexities scores for LDA models&quot;,
-    subtitle = &quot;Perplexity (lower is better) of holdout sets for 5-fold cross-validation&quot;
-  ) +
-  legolda::theme_scatter(bgcol = &quot;#f8f8f8&quot;) </code></pre>
+<pre class="r"><code>perplexities %&gt;% ggplot(aes(n_topic, perplexity)) + geom_point(aes(colour = fold), 
+    size = 2) + geom_line(aes(n_topic, perplexity, group = fold, colour = fold)) + 
+    scale_color_manual(values = pal21(), guide = guide_legend(title = &quot;Folds&quot;)) + 
+    geom_smooth(se = FALSE, colour = &quot;#2f2f2a&quot;) + scale_x_continuous(breaks = perplexities$n_topic) + 
+    labs(x = &quot;Number of topics&quot;, y = &quot;Perplexity&quot;, title = &quot;Perplexities scores for LDA models&quot;, 
+        subtitle = &quot;Perplexity (lower is better) of holdout sets for 5-fold cross-validation&quot;) + 
+    legolda::theme_scatter(bgcol = &quot;#f8f8f8&quot;)</code></pre>
 <p><img src="figure/train-model.Rmd/cv-result-plot-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>ntopics &lt;- c(20, 30, 35, 40, 50, 75, 100)
 # Train LDA models on full data set
 if (!from_cache) {
-  lda_models &lt;- c(20, 30, 35, 40, 50, 75, 100) %&gt;%
-    purrr::map(LDA, x = dtm, control = list(seed = 1))
+    lda_models &lt;- c(20, 30, 35, 40, 50, 75, 100) %&gt;% purrr::map(LDA, x = dtm, 
+        control = list(seed = 1))
 }</code></pre>
 <p>The <a href="https://cran.r-project.org/web/packages/ldatuning/vignettes/topics.html"><code>ldatuning</code></a> package offers several more methods for evaluating the number of topics in LDA model. I’m not familiar with the metrics but I computed these metrics for most of the models.</p>
 <p>The results below don’t give a clear picture on which models are better. Taking a consensus of the three could result in choosing models with either 30 or 75 topics.</p>
-<pre class="r"><code>lda_models &lt;- readRDS(&quot;~/devel/R-proj/lego-lda/inst/data/lda_models_all.RDS&quot;)
+<pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;ldatuning-scores.R&quot;))</code></pre>
+<pre class="r"><code>lda_models &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_models_all.RDS&quot;))
 lda_metrics &lt;- legolda::score_models(lda_models, dtm, topics = ntopics)
 
 plot_lda_scores(lda_metrics, title)</code></pre>
-<p><img src="figure/train-model.Rmd/other-evaluation-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="figure/train-model.Rmd/ldatuning-scores-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>We also computed coherence based on : From the SpeedReader packages</p>
 <pre class="r"><code>cohdf &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;coherence.RDS&quot;))
 cohdf$topn &lt;- forcats::fct_inorder(cohdf$topn)
 # TODO: sort number of terms in order
 
-cohdf %&gt;%
-  ggplot(aes(x = ntopics, y = coherence, group = topn)) +
-  geom_point(aes(colour = topn, group = topn), size = 2) +
-  geom_line(aes(color = topn)) +
-  scale_color_manual(values = pal21(), guide = guide_legend(title = &quot;Number of terms&quot;)) +
-  scale_x_continuous(breaks = cohdf$ntopics) +
-  labs(
-    x = &quot;Number of topics&quot;, y = &quot;Coherence&quot;,
-    title = &quot;Term coherence of LDA models&quot;,
-    subtitle = &quot;Coherence scores (higher is better) for top 3, 5 and 10 terms&quot;
-  ) +
-  theme_scatter(bgcol= &quot;#f8f8f8&quot;)</code></pre>
+cohdf %&gt;% ggplot(aes(x = ntopics, y = coherence, group = topn)) + geom_point(aes(colour = topn, 
+    group = topn), size = 2) + geom_line(aes(color = topn)) + scale_color_manual(values = pal21(), 
+    guide = guide_legend(title = &quot;Number of terms&quot;)) + scale_x_continuous(breaks = cohdf$ntopics) + 
+    labs(x = &quot;Number of topics&quot;, y = &quot;Coherence&quot;, title = &quot;Term coherence of LDA models&quot;, 
+        subtitle = &quot;Coherence scores (higher is better) for top 3, 5 and 10 terms&quot;) + 
+    theme_scatter(bgcol = &quot;#f8f8f8&quot;)</code></pre>
 <p><img src="figure/train-model.Rmd/coherence-score-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>Lastly, the learned clusters were compared to ‘ground truth’ labels, which I took to be each sets ‘parent id’. Any set that was a top level parent was assigned it’s own id. This left 125 parents for the 10713 lego sets included in the analysis. Of those, ony 68 or so were also parents of some other set. This means there are a good number of themes that aren’t parent themes but are top-level themes.</p>
-<p><img src="figure/train-model.Rmd/plot-external-scores-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <p>Following the tidytext book, look at the distribution over topics.</p>
-<p><img src="figure/train-model.Rmd/plot-30-topics-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="figure/train-model.Rmd/plot-40-topics-1.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 
 

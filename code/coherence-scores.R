@@ -7,16 +7,15 @@ library(tidytext)
 
 library(legolda)
 
-lda_models <- readRDS("~/devel/R-proj/lego-lda/inst/data/lda_models_all.RDS"))
+lda_models <- get_lda_models()
 
-set_topics <- lda_models %>%
-  map(function(x) {
-    class(x) <- "LDA"; x
-  }) %>%
-  map(tidytext::tidy, matrix = "gamma")
+# set_topics <- lda_models %>%
+#   map(function(x) {
+#     class(x) <- "LDA"; x
+#   }) %>%
+#   map(tidytext::tidy, matrix = "gamma")
 
-legolda::load_data(sample_data = FALSE)
-legolda::tidy_colorsets()
+dtm
 
 # Total frequency used in relevance score
 freq <- set_colors %>%
@@ -28,18 +27,19 @@ model <- lda_models[[1]]
 lambda <- 0.7
 topn <- 10
 
-top_terms <- top_terms(model, lambda, topn)
+top_terms <- top_terms(model, lambda, topn, freq)
 
 coherence <- function(model, nterms, dtmat, lambda = 0.7, freq) {
   top_terms <- top_terms(model, lambda, nterms, freq)
-  terms <- attr(dtmat, "dimnames")$Terms
+  terms <- attr(dtm, "dimnames")$Terms
   coherence <- SpeedReader::topic_coherence(top_terms$term, dtmat, vocabulary = terms)
   unlist(coherence)
 }
 
 
 from_cache <- TRUE
-# TODO: update method
+
+# This is a moderately long script
 if (!from_cache) {
 
   ldas <- list(k = map(lda_models, ~.x@k))

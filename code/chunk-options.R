@@ -3,11 +3,16 @@
 # https://yihui.name/knitr/options/#chunk-options
 knitr::opts_chunk$set(
   cache = FALSE,
+  # dependencies 
+  autodep = TRUE, 
+  # Don't rerun if only comments changed
+  cache.comments = FALSE,
+  cache.lazy = TRUE, 
   echo = TRUE, 
   eval = TRUE,
   comment = NA,
   fig.align = "center",
-  tidy = FALSE,
+  tidy = TRUE,
   fig.width = 8,
   fig.height = 6,
   out.width = "100%",

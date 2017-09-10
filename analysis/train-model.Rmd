@@ -31,9 +31,9 @@ What number of color themes are there in the Lego dataset? LDA can be thought of
 
 For the following I'm going to first use cross-validation to choose the number of topics based on perplexity, a measure of the goodness of fit of our topic model. Then I'll see how well the learned number of topics matches the theme labels of the lego set. For the theme labels I use the given parent id of the lego set and all sets with no parent id are assigned their own id as theme label. 
 
-```{r chunk, eval = TRUE, echo = FALSE}
+```{r load-data, eval = TRUE, echo = FALSE}
 devtools::load_all()
-knitr::read_chunk(here::here("code", "train-lda.R"))
+knitr::read_chunk(here::here("code", "perplexity-cv.R"))
 ```
 
 ```{r setup, eval = TRUE, echo = FALSE}
@@ -74,7 +74,11 @@ The [`ldatuning`](https://cran.r-project.org/web/packages/ldatuning/vignettes/to
 The results below don't give a clear picture on which models are better. Taking a consensus of the three could result in choosing models with either 30 or 75 topics. 
 
 
-```{r other-evaluation, eval=TRUE, fig.height = 4, fig.width = 7}
+```{r read-ldatuning}
+knitr::read_chunk(here::here("code", "ldatuning-scores.R"))
+```
+
+```{r ldatuning-scores, eval=TRUE, fig.height = 4, fig.width = 7}
 ```
 
 We also computed coherence based on : 
@@ -82,8 +86,7 @@ From the SpeedReader packages
 
 
 ```{r read-coherence, eval = TRUE, echo = FALSE}
-devtools::load_all()
-knitr::read_chunk(here::here("code", "coherence.R"))
+knitr::read_chunk(here::here("code", "coherence-scores.R"))
 ```
 
 ```{r coherence-score, eval = TRUE, echo = TRUE, fig.height = 4, fig.width = 7}
@@ -95,18 +98,19 @@ Lastly, the learned clusters were compared to 'ground truth' labels, which I too
 
 ```{r read-compare-clusters, eval = TRUE, echo = FALSE}
 devtools::load_all()
-knitr::read_chunk(here::here("code", "compare-clusters.R"))
+knitr::read_chunk(here::here("code", "compare-cluster-scores.R"))
 
 ```
 
-```{r plot-external-scores, eval = TRUE, echo = FALSE, fig.height = 4,fig.width = 7}
+```{r plot-external-scores2, eval = TRUE, echo = FALSE, fig.height = 4,fig.width = 7}
+
 ```
 
 
-```{r read-topic-distribution, eval = TRUE, echo = FALSE}
-devtools::load_all()
-knitr::read_chunk(here::here("code", "topic-distribution.R"))
+```{r read-distributions, eval = TRUE, echo = FALSE}
+knitr::read_chunk(here::here("code", "gamma-distribution.R"))
 ```
+
 
 Following the tidytext book, look at the distribution over topics.
 
@@ -114,5 +118,5 @@ Following the tidytext book, look at the distribution over topics.
 ```
 
 
-```{r  plot-30-topics, eval = TRUE, echo = FALSE, fig.height = 7, fig.width = 9}
+```{r  plot-40-topics, eval = TRUE, echo = FALSE, fig.height = 7, fig.width = 9}
 ```

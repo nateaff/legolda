@@ -1,4 +1,4 @@
-# This script:
+# This script 
 # 1. Computes TF-IDF
 # 2. Plots high TF-IDF 'terms', i.e. colors
 # 3. Plots waffle plot samples of the high scoring 'documents', i.e. sets
@@ -12,25 +12,14 @@ library(tm)
 library(tidytext)
 library(purrr)
 
-pal <- unique(set_colors$rgba)
-names(pal) <- unique(pal)
-
 # Compute tf-idf.
-# For exemplar see Tidytext : http://tidytextmining.com/tfidf.html
-set_words <- set_colors %>%
-  count(name, set_num, rgba, sort = TRUE) %>%
-  ungroup()
-
-total_words <- set_words %>%
-  group_by(set_num) %>%
-  summarize(total = sum(n))
-
-set_words <- left_join(set_words, total_words, by = "set_num")
-
-set_words <- set_words %>%
-  tidytext::bind_tf_idf(rgba, set_num, n)
+load_data(sample_data = FALSE)
+load_color_tables()
 
 ## @knitr top-tf-idf-plot
+
+pal <- unique(set_colors$rgba)
+names(pal) <- unique(pal)
 
 # High TF-IDF scores
 top <- set_words %>%
@@ -41,6 +30,7 @@ top <- set_words %>%
   tail(50) %>%
   arrange(desc(tf_idf))
 
+# Hackery
 top <- top[match(unique(top$rgba), top$rgba), ] %>%
   arrange(tf_idf)
 top$rgba <- factor(top$rgba, top$rgba)
@@ -66,6 +56,8 @@ top %>%
   legolda::theme_bar()
 
 ## @knitr top-tf-idf-sets
+bgcol <- "#e8e4e2"
+
 top %>%
   select(set_num) %>%
   left_join(set_colors) %>%
@@ -74,12 +66,13 @@ top %>%
   tidyr::nest() %>%
   mutate(counts = map(data, table)) -> out
 
+
 # Waffle plots
 iron(
-  waff(out[10, ], size = 0.1, nrow = 35, pad = 0, nchr = 20),
-  waff(out[9, ], size = 0.2, nrow = 3, pad = 0, nchr = 20),
-  waff(out[8, ], size = 0.2, nrow = 3, pad = 0, nchr = 17),
-  waff(out[7, ], size = 0.2, nrow = 6, pad = 0, nchr = 12)
+  waff(out[10, ], size = 0.05, rows = 30, nchr = 20, bgcol = bgcol),
+  waff(out[9, ],  size = 0.2, rows = 3,  nchr = 20, bgcol = bgcol),
+  waff(out[8, ],  size = 0.2, rows = 3,  nchr = 17, bgcol = bgcol),
+  waff(out[7, ],  size = 0.2, rows = 10,  nchr = 12, bgcol = bgcol)
 )
 
 ## @knitr low-tf-idf-plot
@@ -116,8 +109,7 @@ low %>%
   coord_flip() +
   legolda::theme_bar()
 
-
-
+## @knitr low-tf-idf-sets1
 low %>%
   select(set_num) %>%
   left_join(set_colors) %>%
@@ -126,14 +118,14 @@ low %>%
   tidyr::nest() %>%
   mutate(counts = map(data, table)) -> out
 
-## @knitr low-tf-idf-plots1,
+
 iron(
-  waff(out[10, ], pad = 0, size = 0.1, nrow = 30, nchr = 17),
-  waff(out[9, ], pad = 0, size = 0.1, nrow = 36, nchr = 20),
-  waff(out[8, ], size = 0.1, nrow = 45, nchr = 15)
+  waff(out[10, ], size = 0.1, rows = 30, nchr = 17, bgcol = bgcol),
+  waff(out[9, ],  size = 0.1, rows = 36, nchr = 20, bgcol = bgcol)
 )
 
-## @knitr low-tf-idf-plots2
+## @knitr low-tf-idf-sets2
 iron(
-  waff(out[7, ], size = 0.2, nrow = 45, nchr = 18)
+  waff(out[8, ], size = 0.1, rows = 45, nchr = 15, bgcol = bgcol), 
+  waff(out[7, ], size = 0.2, rows = 45, nchr = 18, bgcol = bgcol)
 )

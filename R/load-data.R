@@ -19,6 +19,7 @@ load_data <- function(sample_data = TRUE, n_samples = 10000) {
   cat("Assigning themes to theme_df \n")
   theme_df <<- tbl(con, "themes") %>%
     collect()
+
   cat("Assigning sets to sets_df \n")
   sets_df <<- tbl(con, "sets") %>%
     collect()
@@ -27,17 +28,9 @@ load_data <- function(sample_data = TRUE, n_samples = 10000) {
     select(name) %>%
     unique()
 
-  # Counts by theme
-  counts <- tbl(con, "themes") %>%
-    group_by(parent_id) %>%
-    count() %>%
-    collect()
-  sum(counts$n)
-
   cat("Retrieving dataset form db \n")
   # Get tables
   themes <- tbl(con, "themes")
-  inventory_sets <- tbl(con, "inventory_sets")
   inventories <- tbl(con, "inventories")
   inventory_parts <- tbl(con, "inventory_parts")
   colors <- tbl(con, "colors")
@@ -56,14 +49,11 @@ load_data <- function(sample_data = TRUE, n_samples = 10000) {
     collect()
 
   if (sum(is.na(set_raw$root_id)) > 0) stop("NA values in root_id")
-  n_sets <- set_raw$set_num %>%
-    unique() %>%
-    length()
 
   cat("Disconnecting from database \n")
   DBI::dbDisconnect(con)
 
-  # Clean up data and and transparency
+  # Clean up data and add transparency
   names(set_raw) <- c("set_num", "name", "root_id", "theme", 
     "theme_id", "rgb", "year", "is_trans", "quantity")
   set_colors <- set_raw %>%
@@ -100,23 +90,40 @@ assign_text <- function(arg) {
 #' The 'set_colors' data needs to be in teh golbal environment
 #'
 #' @export
-tidy_colorsets <- function() {
-  set_words <- set_colors %>%
-    count(name, set_num, rgba, sort = TRUE) %>%
-    ungroup()
+load_color_tables <- function(sample_data = TRUE) {
+  if(!exists("set_colors")){
+    cat("Loading table 'set_colors'")
+    legolda::load_data(sample_data = sample_data)
+  }
 
-  total_words <<- set_words %>%
+  set_words <- set_colors %>%  
+    dplyr::count(name, set_num, rgba, sort = TRUE) %>% 
+    dplyr::ungroup( )
+
+  total_words <- set_words %>%  
     group_by(set_num) %>%
     summarize(total = sum(n))
+  
+  total_words <<- theme_df %>%
+  mutate(root_id = ifelse(!is.na(parent_id), parent_id, id)) %>%
+  select(id, root_id) %>%
+  right_join(sets_df, by = c("id" = "theme_id")) %>%
+  right_join(total_words)
+
   assign_text(total_words)
 
   set_words <- left_join(set_words, total_words, by = "set_num")
 
   cat("Assigning tidy set and color dataframe to 'set_words' \n")
-  set_words <- set_words %>%
+  set_words <<- set_words %>%
     tidytext::bind_tf_idf(rgba, set_num, n)
 
   cat("Creating sparse document term matrix (tm-package) and assigning to 'dtm' \n")
   dtm <<- set_words %>%
     tidytext::cast_dtm(set_num, rgba, n)
+}
+
+
+get_lda_models <- function(){
+  readRDS(here::here("inst", "data", "lda_models_all.RDS"))
 }
