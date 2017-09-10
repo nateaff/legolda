@@ -40,26 +40,27 @@ top_colors <- top_colors[rep(seq(nrow(top_colors)), top_colors$rep), 1:3]
 
 # Get counts for waffle plot. Wrapper needs name in name column
 tp <- top_colors %>% count(topic, term) %>% 
-  mutate(name = fct_inorder(factor(paste0("Topic ", topic))), 
-    counts = n)
+      rename(count = n)
 
 tpnames <- get_topic_names(lda_models[[model_num]])
-tp$name <- tpnames$topic_name
+tp <- tp %>% left_join(tpnames) %>% 
+      rename(name = topic_name)
+
 
 waff_topic <- function(data, ntopic, col) {
   p <- data %>% filter(topic == ntopic) 
   wp <- waffle2(
-          p$counts, 
+          p$count, 
           title = p$name, 
           colors = p$term, 
-          rows = 5, size = 0.3, 
+          rows = 5, size = 0.5, 
           grout_color = col) 
   wp + theme_waff(col)
 }
 
-bgcol <- "#c8c4c2"
+bgcol <- "#787472"
 
-pp <- lapply(1:ntopics, function(x) waff_topic(data = tp, ntopic = x, col = bgcol))
+pp <- map(1:ntopics, ~waff_topic(data = tp, ntopic = .x, col = bgcol))
 
 grid.draw(grobTree(rectGrob(gp=gpar(fill= bgcol, lwd=0)),
    do.call(grid.arrange, c(pp, ncol = 5) )))
