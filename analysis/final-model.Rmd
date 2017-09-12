@@ -6,6 +6,12 @@ output:
     code_folding: hide
 ---
 
+```{r read-chunk, include=FALSE}
+knitr::read_chunk(here::here("code", "chunk-options.R"))
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
 
 ## Final Topic Model
 
@@ -18,7 +24,7 @@ knitr::read_chunk(here::here("code", "final-model-plots.R"))
 
 ```
 
-```{r plot-topic-distribution, eval = TRUE, fig.width = 9, fig.height = 5}
+```{r plot-topic-distribution, fig.width = 6, fig.height = 9}
 ```
 
 ```{r plot-topic-timeline, eval = TRUE, fig.width = 9, fig.height = 12}
@@ -28,11 +34,15 @@ knitr::read_chunk(here::here("code", "final-model-plots.R"))
 
 ```{r load-chunk2}
 knitr::read_chunk(here::here("code", "final-model-grid.R"))
+
 ```
 
+<!--
 ```{r plot-final-topics, echo = FALSE, eval = TRUE, fig.width = 9, fig.height = 12}
 ```
+-->
 
+![](figure/final-col4-grid.png)
 
 
 

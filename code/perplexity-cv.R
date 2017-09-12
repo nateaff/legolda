@@ -15,7 +15,7 @@ from_cache <- TRUE
 
 if(!exists("set_colors")){
   legolda::load_data(sample_data = FALSE)
-  legolda::load_color_tables()
+  legolda::create_tables()
 }
 
 ## @knitr k-fold-cv

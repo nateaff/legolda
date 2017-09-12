@@ -1,4 +1,4 @@
-# Name topics based on word frequency or tf-idf 
+# Functions for naming topics based on word frequency or tf-idf 
 
  
 #' Collapse String List 
@@ -9,23 +9,29 @@
 #' @param max_n An integer. Maximum number of strings to collapse.
 #' @param len An integer. Length over which to use only the first max_n strings.
 #' @return A string which is a comma separated list of collapsed strings. 
-str_collapse <- function(str_list, len, max_n = 3) {
+str_collapse <- function(str_list, len, max_n = 2) {
   ifelse(stringr::str_length(paste(str_list, collapse = " ")) <= len,
-          paste(str_list, collapse = " "), 
-          paste(str_list[1:max_n], collapse=" "))  
+     paste(str_list, collapse = " "), 
+     paste(str_list[1:max_n], collapse=" "))  
 }
 
 test_str_collapse <- function(){
   letters[1:26]
   out <- str_collapse(list(letters[1:26]), 2, 17)
-  stringr::str_length(out) == 17
+  stringr::str_length(out) == 2
+}
+
+# Capitalize a string
+str_tocap <- function(str_list){
+  first <- purrr::map_chr(str_list, ~ stringr::str_sub(.x, 1, 1))
+  purrr::map2(toupper(first), stringr::str_sub(str_list, 2), paste0)
 }
 
 
+
  
-#' Get topic names based on an LDA model 
+#' Create Topic Names Based on an LDA Model 
 #'
-#' 
 #'
 #' @param model The LDA model which will have names created for its 
 #'  topics 
@@ -70,9 +76,10 @@ get_topic_names <- function(model){
 
   tnames <- top3 %>% split(., top3$topic_id) %>%
     purrr::map_chr(~str_collapse(.x$word, len = 26)) %>%
+    str_tocap %>% 
     # map_chr( ~stringr::str_sub(.x, 1, 32)) %>% 
     tibble(tname = ., id = names(.)) %>% 
-    mutate(topic_name = paste0(id, "  ", tname)) %>% 
+    mutate(topic_name = paste0(id, " ", tname)) %>% 
     mutate(topic = as.numeric(id)) %>% 
     select(topic, topic_name) 
 

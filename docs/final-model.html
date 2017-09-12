@@ -321,31 +321,21 @@ div.tocify {
 <div id="final-topic-model" class="section level2">
 <h2>Final Topic Model</h2>
 <p>So finally we’ll settle on the topic model with 30 topics and look at a couple of summaries based on that topic.</p>
-<pre class="r"><code>devtools::load_all()</code></pre>
-<pre><code>## Loading legolda</code></pre>
-<pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;final-model-plots.R&quot;))</code></pre>
-<pre class="r"><code>library(dplyr)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(ggplot2)
+<pre class="r"><code>devtools::load_all()
+knitr::read_chunk(here::here(&quot;code&quot;, &quot;final-model-plots.R&quot;))</code></pre>
+<pre class="r"><code>library(dplyr)
+library(ggplot2)
 # Set model num. Models: 20, 30, 40, 50, 60, 75, 100
-load_color_tables(sample_data = FALSE)</code></pre>
-<pre><code>## Loading table &#39;set_colors&#39;Connecting to database 
-## Assigning themes to theme_df 
-## Assigning sets to sets_df 
-## Retrieving dataset form db 
-## Disconnecting from database 
-## Assigning full set set inventories to &#39;set_colors&#39;</code></pre>
-<pre><code>## Joining, by = &quot;set_num&quot;</code></pre>
-<pre><code>## Assigning values to total_words
-## Assigning tidy set and color dataframe to &#39;set_words&#39; 
-## Creating sparse document term matrix (tm-package) and assigning to &#39;dtm&#39;</code></pre>
+create_tables(sample_data = FALSE)</code></pre>
+<pre><code>Loading table &#39;set_colors&#39;Connecting to database 
+Assigning themes to theme_df 
+Assigning sets to sets_df 
+Retrieving dataset form db 
+Disconnecting from database 
+Assigning full set set inventories to &#39;set_colors&#39; 
+Assigning values to total_words
+Assigning tidy set and color dataframe to &#39;set_words&#39; 
+Creating sparse document term matrix (tm-package) and assigning to &#39;dtm&#39; </code></pre>
 <pre class="r"><code>lda_models &lt;- get_lda_models()
 
 model_num = 3
@@ -354,39 +344,48 @@ topic_num = get_topic_numbers(lda_models)[model_num]
 # Label sets by top topic probability
 lda_clust &lt;- get_lda_clusters(lda_models)
 
-
 set_num &lt;- names(lda_clust[model_num, ]$clust[[1]])
 
-set_clust &lt;- tidyr::unnest(lda_clust, clust) %&gt;% 
-              mutate(topic_id = clust) %&gt;% 
-              filter(k == 40) %&gt;% 
-              mutate(set_num = set_num) %&gt;%
-              left_join(sets_df) %&gt;% 
-              arrange(topic_id) %&gt;%  
-              mutate(topic_id = forcats::fct_inorder(factor(topic_id)))</code></pre>
-<pre><code>## Joining, by = &quot;set_num&quot;</code></pre>
-<pre class="r"><code>topic_pal &lt;- topic_palette()
+set_clust &lt;- tidyr::unnest(lda_clust, clust) %&gt;% mutate(topic_id = clust) %&gt;% 
+    filter(k == 40) %&gt;% mutate(set_num = set_num) %&gt;% left_join(sets_df) %&gt;% 
+    arrange(topic_id) %&gt;% mutate(topic_id = forcats::fct_inorder(factor(topic_id)))
+
+topic_pal &lt;- topic_palette()
+
 
 # Get count per topic
-set_clust &lt;- set_clust %&gt;% 
-count(topic_id) %&gt;%
-arrange(n) %&gt;%
-mutate(order = row_number())
+set_clust &lt;- set_clust %&gt;% count(topic_id) %&gt;% arrange(n)
 
-gg &lt;- set_clust %&gt;% ggplot(aes(x = topic_id, y = n, 
-          fill = topic_id, 
-          group = topic_id)) 
-gg &lt;- gg + geom_col(size = 0.8)  
-gg &lt;- gg + scale_fill_manual(values = topic_pal) 
-gg &lt;- gg + labs(x = &quot;Topic number&quot;, 
-                y = &quot;Sets in topic&quot;, 
-                title = &quot;Color topic frequency&quot;) 
-gg &lt;- gg + theme_bar(bgcol = &quot;#c8c6c4&quot;) 
-gg &lt;- gg + theme(legend.position = &quot;none&quot;) 
-gg &lt;- gg + theme(panel.grid.major.x = element_blank())     
-gg &lt;- gg + theme(panel.grid.major.y = element_line(color = &quot;#f8f6f4&quot;, size = 0.2))
+tpnames &lt;- get_topic_names(lda_models[[model_num]])
+tpnames &lt;- tpnames %&gt;% mutate(topic = factor(topic))
+# Change palette names to match topic names
+names(topic_pal) &lt;- tpnames$topic_name
+
+set_clust &lt;- set_clust %&gt;% left_join(tpnames, by = c(topic_id = &quot;topic&quot;))
+
+
+
+# plot
+bgcol = &quot;#787472&quot;
+gg &lt;- set_clust %&gt;% ggplot(aes(x = reorder(topic_name, n), y = n, fill = topic_name, 
+    group = topic_name))
+gg &lt;- gg + geom_col(size = 0.8)
+gg &lt;- gg + geom_hline(yintercept = c(300, 600, 900), size = 0.5, col = bgcol)
+gg &lt;- gg + scale_fill_manual(values = topic_pal)
+gg &lt;- gg + scale_y_continuous(breaks = c(300, 600, 900))
+
+gg &lt;- gg + labs(x = &quot;Topic number&quot;, y = &quot;Sets in topic&quot;, subtitle = &quot;Distribution of topics for all Lego sets, 1950 to 2017&quot;, 
+    title = &quot;Lego Color topic frequency&quot;)
+gg &lt;- gg + theme_waff()
+gg &lt;- gg + coord_flip()
+gg &lt;- gg + theme_dark_bar(bgcol = bgcol)
+gg &lt;- gg + theme(legend.position = &quot;none&quot;)
+gg &lt;- gg + theme(axis.text = element_text(family = &quot;Open Sans&quot;, color = &quot;gray5&quot;, 
+    face = &quot;bold&quot;, size = 9))
+gg &lt;- gg + theme(plot.subtitle = element_text(family = &quot;Roboto Condensed&quot;, color = &quot;gray10&quot;, 
+    face = &quot;bold&quot;, size = 11))
 gg</code></pre>
-<p><img src="final-model_files/figure-html/plot-topic-distribution-1.png" width="864" /></p>
+<p><img src="figure/final-model.Rmd/plot-topic-distribution-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>model_num = 3
 topic_num = get_topic_numbers(lda_models)[model_num]
 
@@ -400,38 +399,81 @@ set_clust &lt;- tidyr::unnest(lda_clust, clust) %&gt;%
               mutate(set_num = set_num) %&gt;%
               left_join(sets_df) %&gt;% 
               arrange(topic_id) %&gt;%  
-              mutate(topic_id = forcats::fct_inorder(factor(topic_id)))</code></pre>
-<pre><code>## Joining, by = &quot;set_num&quot;</code></pre>
-<pre class="r"><code>topic_pal &lt;- topic_palette()
+              mutate(topic_id = forcats::fct_inorder(factor(topic_id)))
+
+topic_pal &lt;- topic_palette()
+
+tpnames &lt;- get_topic_names(lda_models[[model_num]])
+tpnames &lt;- tpnames %&gt;% mutate(topic = factor(topic))
+# Change palette names to match topic names 
+names(topic_pal) &lt;- tpnames$topic_name
+
+
+set_clust &lt;- set_clust %&gt;% 
+left_join(tpnames, by = c(&quot;topic_id&quot; = &quot;topic&quot;)) %&gt;% 
+mutate(topic_name = forcats::fct_inorder(topic_name))
 
 # Get count by year and topic
 set_clust %&gt;% 
-group_by(topic_id, year) %&gt;% 
+group_by(topic_name, year) %&gt;% 
 count(topic_id) %&gt;% 
 ggplot(aes(x = year, y = n, 
-    group = topic_id, 
-    color = topic_id)) +
-geom_line(aes(color = factor(topic_id)), size = 0.8) + 
-geom_area(aes(fill = topic_id, alpha = 1)) +   
+    group = topic_name, 
+    color = topic_name)) +
+geom_line(aes(color = factor(topic_name)), size = 0.8) + 
+geom_area(aes(fill = topic_name), alpha = 1) +   
 scale_color_manual(values = topic_pal) +
 scale_fill_manual(values = topic_pal) + 
+scale_x_continuous(breaks = c(1960, 1980, 2000)) +
 labs(x = &quot;Year set released&quot;, 
-  y = &quot;Sets in topic&quot;, 
-  title = &quot;Number of Lego sets per color topic, 1954-2017&quot;) +
-facet_wrap(~topic_id, nrow = 8) +
-theme_scatter(bgcol = &quot;#c8c6c4&quot;, grid_col = &quot;#f8f6f4&quot;) + 
+  y = &quot;Sets in theme&quot;, 
+  subtitle = &quot;Number of sets published per year associated with a color theme&quot;,
+  title = &quot;Lego sets per color theme, 1954-2017&quot;) +
+facet_wrap(~topic_name, nrow = 10) +
+theme_scatter(bgcol = bgcol, grid_col = &quot;#c8c6c4&quot;) +
+theme( 
+      plot.title = element_text(
+        family = &quot;Roboto&quot;,
+        size = 20,
+        face = &quot;bold&quot;,
+        color = &quot;gray5&quot;
+      ),
+      plot.subtitle = element_text(
+        color = &quot;gray10&quot;,
+        face = &quot;bold&quot;,
+        size = 11
+      ),
+      strip.text  = element_text(
+        family = &quot;Open Sans&quot;,
+        face = &quot;plain&quot;,
+        size = 9,
+        color = &quot;gray5&quot;
+        ),
+      axis.title = element_text(
+        family = &quot;Opens Sans&quot;,
+        # face = &quot;bold&quot;,
+        size = 10,
+        color = &quot;gray5&quot;
+      ),
+      axis.text = element_text(
+        family = &quot;Open Sans&quot;,
+        # face = &quot;bold&quot;,
+        size = 9,
+        color = &quot;gray5&quot;
+      )) + 
 theme(legend.position = &quot;none&quot;)</code></pre>
-<p><img src="final-model_files/figure-html/plot-topic-timeline-1.png" width="864" /></p>
+<p><img src="figure/final-model.Rmd/plot-topic-timeline-1.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="color-distributions-by-topic" class="section level2">
 <h2>Color distributions by topic</h2>
 <pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;final-model-grid.R&quot;))</code></pre>
-<pre><code>## 
-## Attaching package: &#39;gridExtra&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     combine</code></pre>
-<p><img src="final-model_files/figure-html/plot-final-topics-1.png" width="864" /></p>
+<!--
+<img src="figure/final-model.Rmd/plot-final-topics-1.png" width="100%" style="display: block; margin: auto;" />
+-->
+<div class="figure">
+<img src="figure/final-col4-grid.svg" />
+
+</div>
 </div>
 
 

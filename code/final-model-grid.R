@@ -4,11 +4,13 @@
 library(forcats)
 library(purrr)
 library(grid)
+library(ggplot2)
 library(gridExtra) 
 
 if(!exists("set_colors")){
-  cat("holler \n")
-  load_data(sample_data = FALSE)
+  cat("Loading data \n")
+  legolda::load_data(sample_data = FALSE)
+  legolda::create_tables()
 }
 
 lda_models <- readRDS(here::here("inst", "data", "lda_models_all.RDS"))
@@ -29,7 +31,7 @@ word_freq <- set_colors %>%
   mutate(percent = n / nrow(set_colors))
 
 lambda = 0.5
-nterms = 15
+nterms = 50
 top_colors <- top_terms(lda_models[[model_num]], lambda, nterms, word_freq) %>% 
   mutate(topic_name = forcats::fct_inorder(factor(topic_name))) %>%
   mutate(rep = round(beta*100)) %>%  
@@ -53,14 +55,50 @@ waff_topic <- function(data, ntopic, col) {
           p$count, 
           title = p$name, 
           colors = p$term, 
-          rows = 5, size = 0.5, 
+          rows = 5, size = 0.3, 
           grout_color = col) 
-  wp + theme_waff(col)
+  # wp <- wp + theme_waff(col) 
+  wp <- wp + theme(legend.position = "none")
+  wp <- wp + theme(
+      # panel.spacing = unit(1.2, "lines"),
+      plot.title = element_text(
+        size = 14,
+        # family = "Roboto Condensed",
+        face = "plain",
+        color = "gray5"
+      ),
+      plot.subtitle = element_text(
+        color = "gray10",
+        face = "plain",
+        size = 11
+      ),
+      axis.title = element_text(
+        size = 11 ,
+        color = "gray15"
+      ),
+      axis.text = element_blank(),
+      plot.caption = element_text(
+        face = "italic",
+        size = 9,
+        color = "gray25"
+      )
+    )
+  # wp <- wp + theme_waff(bgcol = col, modify_text = FALSE)
+  # wp <- wp + theme(plot.title = element_text(size = 10, face = "bold"))
+  wp
 }
 
 bgcol <- "#787472"
 
 pp <- map(1:ntopics, ~waff_topic(data = tp, ntopic = .x, col = bgcol))
 
-grid.draw(grobTree(rectGrob(gp=gpar(fill= bgcol, lwd=0)),
-   do.call(grid.arrange, c(pp, ncol = 5) )))
+pdf(here::here("docs", "figure", "final-grid-plot.pdf"), width = 10, height = 12)
+
+grid.draw(
+  grobTree(
+    rectGrob(gp=gpar(fill= bgcol, lwd=0)),
+    do.call(arrangeGrob, c(pp, ncol = 4) 
+     )))
+
+
+dev.off()

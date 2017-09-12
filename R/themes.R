@@ -8,8 +8,8 @@
 #' @return A ggplot2 theme
 #' @export
 theme_waff <- function(bgcol = "#e8e4e2") {
-  theme_minimal() +
-    theme(
+  tm <- theme_minimal()
+  tm <- tm + theme(
       legend.position = "none",
       plot.background = element_rect(fill = bgcol, color = bgcol),
       panel.background = element_rect(fill = bgcol, color = bgcol),
@@ -23,6 +23,7 @@ theme_waff <- function(bgcol = "#e8e4e2") {
         color = "gray5"
       ),
       plot.subtitle = element_text(
+        family = "Roboto Condensed",
         color = "gray10",
         face = "plain",
         size = 11
@@ -109,3 +110,75 @@ theme_scatter <- function(bgcol = "#e8e4e2", grid_col = "gray25") {
       panel.grid.major.x = element_line(color = grid_col, size = 0.15)
     )
 }
+
+
+
+#' Dark Bar Plot Theme
+#'
+#'
+#' @return A ggplot2 theme
+#' @export
+theme_dark_bar <- function(bgcol = "#686462", grid_col = "white") {
+  theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.background = element_rect(fill = bgcol, color = bgcol),
+      panel.background = element_rect(fill = bgcol, color = bgcol),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.x = element_line(color = grid_col, size = 0.15),
+      panel.grid.minor.x = element_blank(),
+      panel.grid.major.y = element_blank(),
+      # panel.spacing = unit(1.2, "lines"),
+      plot.title = element_text(
+        family = "Roboto",
+        size = 20,
+        face = "bold",
+        color = "gray5"
+      ),
+      plot.subtitle = element_text(
+        family = "Roboto Condensed",
+        color = "black",
+        face = "plain",
+        size = 11
+      ),
+      # axis.text.x = element_text(
+      #   family = "Roboto Condensed",
+      #   face = "plain",
+      #   size = 10,
+      #   color = "gray5"
+      #   ), 
+      axis.title = element_text(
+        family = "Roboto Condensed",
+        face = "bold",
+        size = 11,
+        color = "gray5"
+      ),
+      axis.text = element_text(
+        family = "Roboto Condensed",
+        face = "plain",
+        size = 9,
+        color = "gray80"
+      ),
+      # axis.text = element_blank(),
+      plot.caption = element_text(
+        family = "Roboto Condensed",
+        face = "italic",
+        size = 9,
+        color = "gray5"
+      )
+    )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

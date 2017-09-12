@@ -1,6 +1,7 @@
-# Compute weighted sum of two vectors
+# Functions for computing relevance and top terms of 
+# an LDA model based on the relevance scores
  
-#' Compute weighte sum of vectors
+#' Compute Weighted Sum of Vectors
 #'
 #' @param x A vector
 #' @param y A vector
@@ -14,7 +15,7 @@ weight <- function(x, y, wt) {
 # Takes a model output by topicmodels::LDA and
 # returns the top nterms based on a weighted relevance score
  
-#' Compute the top terms of an LDA model
+#' Compute the Top Terms of an LDA Model
 #'
 #' Computes a relevance score using the weighted sum 
 #' of the document term score and corpus term freqeuncy.

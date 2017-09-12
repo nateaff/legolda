@@ -121,8 +121,6 @@ waffle2 <- function(parts, rows=10, keep=TRUE, xlab=NULL, title=NULL, colors=NA,
   if (flip) gg <- ggplot(dat, aes(x = y, y = x))
 
   gg <- gg + theme_bw()  
-  gg <- gg + theme_waff(grout_color)
- 
 
   # make the plot
 

@@ -1,5 +1,4 @@
 
- 
 #' Score a Kmeans Clustering Based on TF-IDF scores
 #'
 #' Generate a kmeans clustering for each of n_topics and
@@ -55,11 +54,6 @@ score_kmeans <- function(n_topics, from_cache = FALSE) {
   } # end else
 } 
 
-## @knitr lda-compute-external-score
-
-# Cluster based on LDA
-library(ggplot2)
-library(waffle)
 
 
 #' Retrieve Topic Numbers

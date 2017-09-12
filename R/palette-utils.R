@@ -1,4 +1,4 @@
-#' Generate a pallete from a color vector
+#' Generate a Pallete Function from a Color Vector
 #' 
 #' @param vec A vector to convert ot a function 
 #' @param fname A string. The name of the function
@@ -32,7 +32,7 @@ write_palette_function <- function(vec){
 
 # The remaining files rely on this one 
  
-#' Generate a color for each topic
+#' Generate a Color from a Topic
 #'
 #' Generate a function that returns the topic palette 
 #' with a color associated with each topic. Function assumes
@@ -70,8 +70,10 @@ generate_topic_palette <- function(lda_model, set_colors) {
 }
 
 
-
-#' Palette based on topic 21 from 35? topic model 
+ 
+#' A Color Palette from the Lego Dataset
+#'
+#' Returns a palette with 10 colors
 #' @export
 pal21 <- function() {
   c("#9B9A5AFF", "#CC702AFF", "#078BC9FF", "#F8BB3DFF",

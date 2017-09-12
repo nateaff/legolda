@@ -1,6 +1,6 @@
 # Connect to database and load all lego sets
  
-#' Load set colors and other data sets from an DB
+#' Retrieve and Munge Lego Datasets
 #'
 #' Function relies on a connection being returned by the 
 #'  connect function.
@@ -84,13 +84,13 @@ assign_text <- function(arg) {
 
 # Load set_words, dtm to environment
  
-#' Load several data sets into the global environment
+#' Load Derived Lego Datasets to Environment
 #'
 #' Loads 'set_words' and the document term matrix 'dtm'.
-#' The 'set_colors' data needs to be in teh golbal environment
+#' The 'set_colors' data needs to be in the golbal environment
 #'
 #' @export
-load_color_tables <- function(sample_data = TRUE) {
+create_tables <- function(sample_data = TRUE) {
   if(!exists("set_colors")){
     cat("Loading table 'set_colors'")
     legolda::load_data(sample_data = sample_data)

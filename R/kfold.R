@@ -3,7 +3,7 @@
 # package but does not require data to be a dataframe
 # and does not use references; data is copied to the tibble.
  
-#' Create k-fold train and test sets
+#' Create K-fold Train and Test Sets
 #'
 #' Based on the function from the modelr package
 #'

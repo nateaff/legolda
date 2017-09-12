@@ -8,7 +8,7 @@ knitr::opts_chunk$set(
   # Don't rerun if only comments changed
   cache.comments = FALSE,
   cache.lazy = TRUE, 
-  echo = TRUE, 
+  echo = FALSE, 
   eval = TRUE,
   comment = NA,
   fig.align = "center",

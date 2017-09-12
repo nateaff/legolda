@@ -1,0 +1,79 @@
+---
+title: "Color and topic distributions"
+author: "Nathanael Aff"
+output: 
+  html_document:
+    code_folding: hide
+---
+
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk(here::here("code", "chunk-options.R"))
+devtools::load_all()
+```
+
+<!-- Update knitr chunk options -->
+```{r knitr-opts-chunk, nclude=FALSE}
+```
+
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
+
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
+
+<!-- Add your analysis here -->
+
+# Color distributions over topics
+
+In the beginning we described the latend-Dirichlet model as a generative model. The LDA algorithm attempts to learn the generative distributions that's most likely given the data at hand. The result of the LDA models is two posterior distributions, the algorithm's best guess at the distribution of topics over the Lego sets and colors over the topics that generated out documents. 
+
+First we'll look at the learned topics. 
+
+```{r setup, }
+library(dplyr)
+library(purrr)
+library(ggplot2)
+```
+
+```{r load-data, echo = FALSE, cache = TRUE}
+load_data(sample_data = FALSE)
+```
+
+```{r load-chunk}
+knitr::read_chunk(here::here("code", "compare-models.R"))
+```
+
+```{r color-distribution}
+```
+
+```{r topic-sets-table}
+```
+
+```{r  waffle-topic}
+```
+
+```{r, topic-sets-table2}
+```
+
+```{r  waffle-topic2, }
+```
+
+```{r topic-sets-table3}
+```
+
+```{r  waffle-topic3}
+
+```
+
+
+
+
+
+
+
