@@ -21,19 +21,17 @@ knitr::read_chunk(here::here("code", "chunk-options.R"))
 ```
 
 ```{r code-version, echo=FALSE, results='asis'}
-```
+``` 
 
 # Selecting a topic model 
 
-Up to this point, we've been using the full data set. (Actually, I'm not including some data so I should say, almost the full data set). 
-Solving the LDA problem is computationally intensive, so for the remaining examples, we're going to work with a very small sample of the data, just 250 sets of the 11,000 set total. 
+As with kmeans clustering the LDA model requires the number of topics $k$ to be selected by the user. In this section we test out several methods that could be used to automate the scoring and selection
 
 ## Cross validation on perplexity 
 
 The LDA model learns to posterior distributions which are the optimization routine's best guess at the distributions that generated the data. One method to test how good those distributions fit our data is to compare the learned distribution on a training set to the distribution of a holdout set. Perplexity is one measure of the difference between estimated topic distributions on documents. 
 
 We cast the set_word table to a document term matrix using the `tidytext` function. This returns a` documentTermMatrix` object from the `tm` package. The LDA function we use is from the `topicmodels` package. It has a variational expectation maximation method and a Gibbs sampling method and I used the former.
-
 
 ```{r load-data, eval = TRUE, echo = FALSE}
 devtools::load_all()
@@ -46,24 +44,21 @@ knitr::read_chunk(here::here("code", "perplexity-cv.R"))
 ```{r k-fold-cv, eval=FALSE, echo=FALSE, warning=FALSE}
 ```
 
-
 ```{r load-results, eval=TRUE, echo=TRUE}
 ```
 
 ### K-topic grid
 
-Since I tested the running time on different set numbers I have seen that for this small number of sets there aren't many topics. I'm putting a few more topic values $k$  on the lower end but including some higher values to better see the trend.
+Since I tested the running time on different set numbers I have seen that for this small number of sets there aren't many topics. I have included a few more topic values $k$ on the lower end but including some higher values to better see the trend.
 
-Perplexity decreases with more topics but the rate of decrease changes around 10 to 15. 
 
 ```{r cv-result-plot, eval=TRUE, echo=TRUE, fig.height = 4, fig.width = 7}
 ```
 
-
 ```{r lda-models, eval=TRUE, echo=TRUE}
 ```
 
-## Other measures of topic quality 
+## `ldatuning` topic scores 
 
 The `ldatuning` package has several other metrics of the quality of the topic models. I have modified the main function from the package to only return the scores. (The original package computes the models first and then the scores).  
 
@@ -74,14 +69,6 @@ knitr::read_chunk(here::here("code", "ldatuning-scores.R"))
 ```{r ldatuning-scores, eval=TRUE, fig.height = 4, fig.width = 7}
 ```
 
-### Interpreting the topic metrics
-
-What are these measures? I skimmed two of the references in the `ldatuning` package but I don't understand them enough to give a brief interpretation of what the scores mean.
-
-There is no agreement here although two measures change most between 5 and 15, although it is in opposite directions. Along with the perplexity numbers, it might suggest a value around 12. Here I'm informally assuming that we're not gaining much information for $k$ greater than 20.
-
-
-
 ## Topic coherence
 
 There are several version of topic coherence which measure the pairwise strength of the relationship of the top terms in a topic model. Given some score where a larger value indicates a stronger relation ship between two words $w_i, w_j$, a generic coherence score is the sum over the top terms in a topic model:  
@@ -89,7 +76,6 @@ There are several version of topic coherence which measure the pairwise strength
  with top terms $W_t$ for each topic $t$.
  
 The coherence score used in the `SpeedReader` coherence function just uses the internal coherence of the top terms. I compared the scores for the top 3, 5 and 10 terms.
-
 
 ```{r read-coherence, eval = TRUE, echo = FALSE}
 knitr::read_chunk(here::here("code", "coherence-scores.R"))
@@ -108,10 +94,8 @@ The previous plot should indicate whether documents are getting strongly associa
 In this next section, I cluster documents using both kmeans and LDA topics. Kmeans is intended as a simple baseline clustering method and sets are clustered based on their term vectors weighted by TF-IDF scores. 
 
 ### Cluster analysis
+
 The clusters scores include Rand, adjusted Rand, Folkes-Mallow and Jaccard scores. All try to score a clustering on how well the discovered labels match the assigned labels -- here the `root_id` of the set.  The Rand index assigns a score based on the number pairwise agreement of the cluster labels with the original labels. The other measures are somewhat similar in approach.
-
-The scores behave similarly for both clustering methods but I'm not sure the results are helpful for determining the best $k$. These labels might not match actual color themes and some theme ids may correspond well to a color topic while other themes may have no coherent color scheme.
-
 
 ```{r read-compare-clusters, eval = TRUE, echo = FALSE}
 devtools::load_all()
@@ -123,13 +107,17 @@ knitr::read_chunk(here::here("code", "compare-cluster-scores.R"))
 
 ```
 
-## Topic Distribution 
-Another way to evaluate the quality of the topic models is to see how well do. This example follows a [this section](http://tidytextmining.com/nasa.html#calculating-tf-idf-for-the-description-fields) from the tidy text mining book. 
+## Topic Distribution
 
-The topic model's 'gamma' matrix has the distribution of topics over models. The plot below visualizes this as how the _topics_ are distributed over the probability bins for each topic. If too many topics have sets or documents in the low probability bins then you may have too high a number of topics since few documents are being strongly associated with any topic. 
+Another way to evaluate the quality of the topic models is to see how well documents are sorted into topics. This example follows a [this section](http://tidytextmining.com/nasa.html#calculating-tf-idf-for-the-description-fields) from the tidy text mining book. 
 
-For our lego sets at 10 topics, the number of documents in high probability bins is already getting sparse while at 5 the documents are better distributed over each topic. 
-  For most topics, only the first 2-5 terms were closely related to the topic so it is not surprising that the 10 term coherence drops off quickly. In any case, the coherence measure doesn't tell us much. If we assume that only 3 terms are significant the plot does show there is not too much decline in coherence up to $k = 10$.
+The topic model's gamma matrix has the distribution of topics over models: 
+\[
+ \text{gamma}  = p(t|d)
+\] 
+for topic $t$ and document $d$.
+
+The plot below visualizes this as how the _topics_ are distributed over the probability bins for each topic. If too many topics have sets or documents in the low probability bins then you may have too high a number of topics since few documents are being strongly associated with any topic. 
 
 
 ```{r read-distributions, eval = TRUE, echo = FALSE}

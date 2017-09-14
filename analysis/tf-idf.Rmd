@@ -23,7 +23,7 @@ knitr::read_chunk(here::here("code", "chunk-options.R"))
 
 
 ## Analyzing color frequency with TF-IDF
-From the frequency plot, it's clear a few primary colors along with black, gray, and white make up the majority of brick colors. In text mining, one might remove some set of stop words that are frequent in all texts but add no meaning to a statistical analysis of the text. In our case, there are just 125 unique colors and I did not use a color stop list. 
+A few primary colors along with black, gray, and white make up the majority of the brick colors in the Lego dataset. In text mining, one might remove some set of stop words that are frequent in all texts but add no meaning to a statistical analysis of the text. In our case, there are just 125 unique colors and I did not use a color stop list. 
 
 TF-IDF is one way to look at words that are more meaningful to each document. Word frequency per document is weighted(inversely) by the number of documents the word occurs in. The TF-IDF score shows what terms are unique to a particular document. 
 
@@ -56,11 +56,9 @@ The top TF-IDF scores associated with a set-color pair should show us the most d
 ```
 
 
-## Low TF-IDF set-term combinations
+## Low TF-IDF
 
-Set-color combinations are should correspond to colors that are common colors that are also common in a set.  Here we make a plot similar to the last two but for set-colors combinations with the lowest TF-IDF scores.
-
-The lowest TF-IDF scores are associated with big sets with colors that show up in many sets. 
+Set-color combinations are should correspond to colors that are common colors that are also common in a set.  Here we make a plot similar to the last two but for set-colors combinations with the lowest TF-IDF scores. The lowest TF-IDF scores are associated with big sets with colors that show up in many sets. 
 
 
 ```{r low-tf-idf-plot }
