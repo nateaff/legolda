@@ -7,6 +7,8 @@ navbar:
   left:
     - text: "Home"
       href: index.html
+    - text: "About"
+      href: about.html
   right:
     - icon: fa-github
       href: https://github.com/nateaff/legolda

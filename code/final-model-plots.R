@@ -44,7 +44,8 @@ left_join(tpnames, by = c("topic_id" = "topic"))
 
 
 # plot 
-bgcol = "#787472"
+bgcol = "#8B8684"
+
 gg <- set_clust %>% 
 ggplot(aes(x = reorder(topic_name, n),
           y = n, 
@@ -53,28 +54,36 @@ ggplot(aes(x = reorder(topic_name, n),
 gg <- gg + geom_col(size = 0.8)  
 gg <- gg + geom_hline(yintercept = c(300, 600, 900), size = 0.5, col = bgcol)
 gg <- gg + scale_fill_manual(values = topic_pal) 
-gg <- gg + scale_y_continuous(breaks = c(300, 600, 900)) 
+# gg <- gg + scale_y_continuous(breaks = c(300, 600, 900)) 
 
-gg <- gg + labs(x = "Topic number", 
-                y = "Sets in topic", 
-                subtitle = "Distribution of topics for all Lego sets, 1950 to 2017",
-                title = "Lego Color topic frequency") 
+gg <- gg + labs(x = "Theme", 
+                y = "Sets in theme", 
+                subtitle = "Distribution of themes for all Lego sets, 1950 to 2017",
+                title = "Lego color theme frequency") 
 gg <- gg + theme_waff() 
 gg <- gg + coord_flip()
 gg <- gg + theme_dark_bar(bgcol = bgcol) 
+gg <- gg + geom_vline(xintercept = c(300, 600, 900), size = 0.7, col = bgcol)
+
 gg <- gg + theme(legend.position = "none")
 gg <- gg + theme(
         axis.text = element_text(
-        family = "Open Sans", 
+        family = "Roboto Condensed", 
         color = "gray5",
+        face = "plain", 
+        size = 7))
+gg <- gg + theme(
+        axis.title = element_text(
+        family = "Roboto Condensed", 
+        color = "gray1",
         face = "bold", 
         size = 9))
 gg <- gg + theme(
         plot.subtitle = element_text(
         family = "Roboto Condensed",
         color = "gray10",
-        face = "bold",
-        size = 11))
+        face = "plain",
+        size = 9))
 gg
 
 
@@ -120,10 +129,10 @@ geom_area(aes(fill = topic_name), alpha = 1) +
 scale_color_manual(values = topic_pal) +
 scale_fill_manual(values = topic_pal) + 
 scale_x_continuous(breaks = c(1960, 1980, 2000)) +
-labs(x = "Year set released", 
+labs(x = "", 
   y = "Sets in theme", 
   subtitle = "Number of sets published per year associated with a color theme",
-  title = "Lego sets per color theme, 1954-2017") +
+  title = "Lego sets per color theme, 1950-2017") +
 facet_wrap(~topic_name, nrow = 10) +
 theme_scatter(bgcol = bgcol, grid_col = "#c8c6c4") +
 theme( 
@@ -134,26 +143,27 @@ theme(
         color = "gray5"
       ),
       plot.subtitle = element_text(
-        color = "gray10",
-        face = "bold",
+        family = "Roboto Condensed",
+        color = "gray15",
+        face = "plain",
         size = 11
       ),
       strip.text  = element_text(
-        family = "Open Sans",
+        family = "Roboto Condensed",
         face = "plain",
-        size = 9,
+        size = 10,
         color = "gray5"
         ),
       axis.title = element_text(
-        family = "Opens Sans",
-        # face = "bold",
-        size = 10,
+        family = "Roboto Condensed",
+        face = "bold",
+        size = 11,
         color = "gray5"
       ),
       axis.text = element_text(
-        family = "Open Sans",
+        family = "Roboto Condensed",
         # face = "bold",
-        size = 9,
+        size = 10,
         color = "gray5"
       )) + 
 theme(legend.position = "none")

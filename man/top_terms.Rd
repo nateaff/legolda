@@ -2,7 +2,7 @@
 % Please edit documentation in R/weighted-relevance.R
 \name{top_terms}
 \alias{top_terms}
-\title{Compute the top terms of an LDA model}
+\title{Compute the Top Terms of an LDA Model}
 \usage{
 top_terms(model, lambda, nterms, freq)
 }

@@ -9,3 +9,4 @@ R/connect.R
 code/lego-lda.R
 inst/doc
 ints/data
+*.sublime*

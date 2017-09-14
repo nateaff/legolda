@@ -14,7 +14,7 @@ library(purrr)
 
 # Compute tf-idf.
 load_data(sample_data = FALSE)
-load_color_tables()
+create_tables()
 
 ## @knitr top-tf-idf-plot
 
@@ -36,6 +36,7 @@ top <- top[match(unique(top$rgba), top$rgba), ] %>%
 top$rgba <- factor(top$rgba, top$rgba)
 top <- tail(top, 10)
 
+bgcol = "#e8e4e2"
 # Plot highest tf-idf sets
 top %>%
   ggplot() +
@@ -52,8 +53,10 @@ top %>%
     title = "Colors distinct to a set",
     subtitle = paste0("Set and brick color combinations with high TF-IDF scores")
   ) +
+  geom_hline(yintercept = c(0, 1, 2, 3), size = 1.5, col = bgcol) +
   coord_flip() +
   legolda::theme_bar()
+
 
 ## @knitr top-tf-idf-sets
 bgcol <- "#e8e4e2"
@@ -64,12 +67,12 @@ top %>%
   select(name, theme, year, set_num, rgba) %>%
   group_by(theme, name, set_num, year) %>%
   tidyr::nest() %>%
-  mutate(counts = map(data, table)) -> out
+  mutate(counts = purrr::map(data, table)) -> out
 
 
 # Waffle plots
 iron(
-  waff(out[10, ], size = 0.05, rows = 30, nchr = 20, bgcol = bgcol),
+  waff(out[10, ], size = 0.01, rows = 30, nchr = 20, bgcol = bgcol),
   waff(out[9, ],  size = 0.2, rows = 3,  nchr = 20, bgcol = bgcol),
   waff(out[8, ],  size = 0.2, rows = 3,  nchr = 17, bgcol = bgcol),
   waff(out[7, ],  size = 0.2, rows = 10,  nchr = 12, bgcol = bgcol)
@@ -86,7 +89,7 @@ low <- set_words %>%
   filter(!is.na(rgba)) %>%
   arrange(tf_idf)
 
-# Remove
+
 low <- low[match(unique(low$rgba), low$rgba), ]
 low$rgba <- factor(low$rgba, low$rgba)
 low <- low[1:10, ]
@@ -106,6 +109,7 @@ low %>%
     title = "Not very suprising colors",
     subtitle = "Set and brick color combinations with low TF-IDF scores"
   ) +
+   geom_hline(yintercept = c(0, 0.003, 0.006, 0.009), size = 1.5, col = bgcol) +
   coord_flip() +
   legolda::theme_bar()
 
@@ -116,7 +120,7 @@ low %>%
   select(name, theme, year, set_num, rgba) %>%
   group_by(theme, name, set_num, year) %>%
   tidyr::nest() %>%
-  mutate(counts = map(data, table)) -> out
+  mutate(counts = purrr::map(data, table)) -> out
 
 
 iron(

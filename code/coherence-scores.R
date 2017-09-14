@@ -29,66 +29,41 @@ coherence <- function(model, nterms, dtmat, lambda = 0.7, freq) {
 # A test
 # top_terms <- top_terms(model, lambda, top_num, freq)
 
-# topic_coherence takes a matrix
-dtmat <- as.matrix(dtm)
-
-coh_tbl <- tibble(model = lda_models) %>% 
-mutate(ntopics = legolda::get_topic_numbers(model)) %>%
-mutate("3" = purrr::map(model, coherence, nterms = 3, dtmat = dtmat, freq =freq)) %>%
-mutate("5" = purrr::map(model, coherence, nterms = 5, dtmat = dtmat,  freq = freq)) %>%
-mutate("10" = purrr::map(model, coherence, nterms = 10, dtmat = dtmat,  freq = freq))
-
-# TODO: finish fixing
-test <- coh_tbl %>% 
-select(-model) 
-# tidyr::unnest(ntopics)
-
-# Use cached version
+# Use cached version?
 from_cache <- TRUE
 
 # This is a moderately long script
 if (!from_cache) {
+
+  # topic_coherence takes a matrix
   dtmat <- as.matrix(dtm)
 
-coh_tbl <- tibble(model = lda_models) %>% 
-mutate(ntopics = legolda::get_topic_numbers(model)) %>%
-mutate("3" = purrr::map(model, coherence, nterms = 3, dtmat = dtmat, freq =freq)) %>%
-mutate("5" = purrr::map(model, coherence, nterms = 5, dtmat = dtmat,  freq = freq)) %>%
-mutate("10" = purrr::map(model, coherence, nterms = 10,dtmat = dtmat,  freq = freq))
+  coh_tbl <- tibble(model = lda_models) %>% 
+  mutate(ntopics = legolda::get_topic_numbers(model)) %>%
+  mutate("3" = purrr::map(model, coherence, nterms = 3, dtmat = dtmat, freq =freq)) %>%
+  mutate("5" = purrr::map(model, coherence, nterms = 5, dtmat = dtmat,  freq = freq)) %>%
+  mutate("10" = purrr::map(model, coherence, nterms = 10, dtmat = dtmat,  freq = freq))
 
-coh_tbl <- coh_tbl[,-1] %>% tidyr::unnest %>% tidyr::gather 
-
-  # ldas <- list(k = map(lda_models, ~.x@k))
-  # # 
-  # coh10 <- lda_models %>%
-  #   purrr::map(coherence, dtmat = dtmat, nterms = 10, freq)
-  # coh5 <- lda_models %>%
-  #   purrr::map(coherence, dtmat = dtmat, nterms = 5, freq)
-  # coh3 <- lda_models %>%
-  #   purrr::map(coherence, dtmat = dtmat, nterms = 3, freq)
-
-  # coh <- list(coh3, coh5, coh10) %>%
-  #   lapply(., unlist) %>%
-  #   do.call(cbind, .) %>%
-  #   data.frame()
-
-  # coh$ntopics <- unlist(ldas)
-
-  # names(coh) <- c("3", "5", "10", "ntopics")
-  # coh_tbl <- tidyr::gather(coh, key = topn, value = coherence, -ntopics)
+  # TODO: finish fixing
+  coh_tbl <- coh_tbl %>% 
+  select(-model) %>%
+  tidyr::unnest( ) %>% 
+  tidyr::gather(key = nterms, value = coherence, -ntopics)
   saveRDS(coh_tbl, here::here("inst", "data", "coherence.RDS"))
 } # end if
 
 # @knitr coherence-score
 
 coh_tbl <- readRDS(here::here("inst", "data", "coherence.RDS"))
-coh_tbl$topn <- forcats::fct_inorder(coh_tbl$topn)
+coh_tbl <- coh_tbl %>% 
+mutate(nterms = forcats::fct_inorder(nterms))
+
 # TODO: sort number of terms in order
 
 coh_tbl %>%
-  ggplot(aes(x = ntopics, y = coherence, group = topn)) +
-  geom_point(aes(colour = topn, group = topn), size = 2) +
-  geom_line(aes(color = topn)) +
+  ggplot(aes(x = ntopics, y = coherence, group = nterms)) +
+  geom_point(aes(colour = nterms, group = nterms), size = 2) +
+  geom_line(aes(color = nterms)) +
   scale_color_manual(values = pal21(), guide = guide_legend(title = "Number of terms")) +
   scale_x_continuous(breaks = coh_tbl$ntopics) +
   labs(

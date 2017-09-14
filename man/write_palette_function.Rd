@@ -2,7 +2,7 @@
 % Please edit documentation in R/palette-utils.R
 \name{write_palette_function}
 \alias{write_palette_function}
-\title{Generate a pallete from a color vector}
+\title{Generate a Pallete Function from a Color Vector}
 \usage{
 write_palette_function(vec)
 }
@@ -17,5 +17,5 @@ Writes a file to a local R directory. Assumes
  that the function is called from a package directory.
 }
 \description{
-Generate a pallete from a color vector
+Generate a Pallete Function from a Color Vector
 }

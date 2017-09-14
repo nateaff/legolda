@@ -2,7 +2,7 @@
 % Please edit documentation in R/topic-names.R
 \name{get_topic_names}
 \alias{get_topic_names}
-\title{Get topic names based on an LDA model}
+\title{Create Topic Names Based on an LDA Model}
 \usage{
 get_topic_names(model)
 }
@@ -14,5 +14,5 @@ topics}
 A tibble with the single column `topic_name`
 }
 \description{
-Get topic names based on an LDA model
+Create Topic Names Based on an LDA Model
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/weighted-relevance.R
 \name{weight}
 \alias{weight}
-\title{Compute weighte sum of vectors}
+\title{Compute Weighted Sum of Vectors}
 \usage{
 weight(x, y, wt)
 }
@@ -15,5 +15,5 @@ weight(x, y, wt)
 A vector
 }
 \description{
-Compute weighte sum of vectors
+Compute Weighted Sum of Vectors
 }

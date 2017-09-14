@@ -13,9 +13,15 @@ knitr::read_chunk(here::here("code", "chunk-options.R"))
 ```{r knitr-opts-chunk, include=FALSE}
 ```
 
-## Final Topic Model
 
-So finally we'll settle on the topic model with 30 topics and look at a couple of summaries based on that topic. 
+# Final model plots
+Here are several plots based on the final color topics.
+1. Color themes 
+2. Distribution of themes 
+3. Distribution of themes over time. 
+
+## Lego color themes
+This plot represents each topic as the distribution of colors. These are the 'color urns' that the Lego themes are drawn from.
 
 
 ```{r load-chunk1}
@@ -24,25 +30,27 @@ knitr::read_chunk(here::here("code", "final-model-plots.R"))
 
 ```
 
-```{r plot-topic-distribution, fig.width = 6, fig.height = 9}
+```{r plot-topic-distribution, fig.width = 6, fig.height = 6}
 ```
 
-```{r plot-topic-timeline, eval = TRUE, fig.width = 9, fig.height = 12}
+## Lego theme timeline
+
+```{r plot-topic-timeline, eval = TRUE, fig.width = 7, fig.height = 10}
 ```
 
-## Color distributions by topic 
+
+### The topic palette
+
+Here we create a palette to represent each topic in the last two plots. I use a blend of the top two colors in each topic. 
 
 ```{r load-chunk2}
 knitr::read_chunk(here::here("code", "final-model-grid.R"))
-
 ```
 
-<!--
-```{r plot-final-topics, echo = FALSE, eval = TRUE, fig.width = 9, fig.height = 12}
+```{r plot-final-topics, echo = TRUE, eval = FALSE}
 ```
--->
 
-![](figure/final-col4-grid.png)
+![](figure/color-themes-big.png)
 
 
 

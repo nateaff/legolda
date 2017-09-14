@@ -188,7 +188,7 @@ plot_lda_scores <- function(values, pal = NULL) {
   p <- p + scale_color_manual(values = pal21()[1:5])
   p <- p + labs(
     x = "Number of topics",
-    y = NULL,
+    y = "Score",
     title = "Topic model scores",
     subtitle = "All scores rescaled to (0,1), lower is better"
   )

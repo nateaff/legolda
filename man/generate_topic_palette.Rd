@@ -2,7 +2,7 @@
 % Please edit documentation in R/palette-utils.R
 \name{generate_topic_palette}
 \alias{generate_topic_palette}
-\title{Generate a color for each topic}
+\title{Generate a Color from a Topic}
 \usage{
 generate_topic_palette(lda_model, set_colors)
 }

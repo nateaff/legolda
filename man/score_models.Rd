@@ -2,7 +2,7 @@
 % Please edit documentation in R/ldatuning2.R
 \name{score_models}
 \alias{score_models}
-\title{score_models}
+\title{Score Models Using Scores from \code{ldatuning} Package}
 \usage{
 score_models(models, dtm, topics = seq(10, 40, by = 10),
   metrics = c("CaoJuan2009", "Arun2010", "Deveaud2014"), verbose = FALSE)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/kfold.R
 \name{kfold}
 \alias{kfold}
-\title{Create k-fold train and test sets}
+\title{Create K-fold Train and Test Sets}
 \usage{
 kfold(data, k = 5, id = ".id")
 }

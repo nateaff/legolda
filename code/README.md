@@ -21,6 +21,6 @@ File contents, organized by the rmarkdown files which call chunks in the files a
 
 ### final-model.Rmd
 
-7. `final-model-plots.R`: Bar plot and time series of topic counts of the final topic model
-8. `topic-names`: Generate topic names for the final model
+7. `topic-names`: Generate topic names for the final model
+8. `final-model-plots.R`: Bar plot and time series of topic counts of the final topic model
 9. `final-model-grid.R`: Waffle plots of the final topics

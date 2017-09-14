@@ -2,10 +2,10 @@
 % Please edit documentation in R/palette-utils.R
 \name{pal21}
 \alias{pal21}
-\title{Palette based on topic 21 from 35? topic model}
+\title{A Color Palette from the Lego Dataset}
 \usage{
 pal21()
 }
 \description{
-Palette based on topic 21 from 35? topic model
+Returns a palette with 10 colors
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/load-data.R
 \name{load_data}
 \alias{load_data}
-\title{Load set colors and other data sets from an DB}
+\title{Retrieve and Munge Lego Datasets}
 \usage{
 load_data(sample_data = TRUE, n_samples = 10000)
 }

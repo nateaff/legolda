@@ -287,6 +287,9 @@ div.tocify {
         <li>
   <a href="index.html">Home</a>
 </li>
+<li>
+  <a href="about.html">About</a>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -330,7 +333,7 @@ knitr::opts_chunk$set(
   # Don&#39;t rerun if only comments changed
   cache.comments = FALSE,
   cache.lazy = TRUE, 
-  echo = TRUE, 
+  echo = FALSE, 
   eval = TRUE,
   comment = NA,
   fig.align = &quot;center&quot;,
@@ -345,15 +348,14 @@ knitr::opts_chunk$set(
   fig.path = paste0(&quot;figure/&quot;, knitr::current_input(), &quot;/&quot;)
 )</code></pre>
 <!-- Insert the date the file was last updated -->
-<p><strong>Last updated:</strong> 2017-09-10</p>
+<p><strong>Last updated:</strong> 2017-09-13</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> eeee1ad</p>
+<p><strong>Code version:</strong> 880af53</p>
 <!-- Add your analysis here -->
-<div id="color-distributions-over-topics" class="section level1">
-<h1>Color distributions over topics</h1>
-<p>In the beginning we described the latend-Dirichlet model as a generative model. The LDA algorithm attempts to learn the generative distributions that’s most likely given the data at hand. The result of the LDA models is two posterior distributions, the algorithm’s best guess at the distribution of topics over the Lego sets and colors over the topics that generated out documents.</p>
-<p>First we’ll look at the learned topics.</p>
+<div id="color-distributions-by-topic" class="section level2">
+<h2>Color distributions by topic</h2>
+<p>The last thing we’ll look at before presenting plots for the final model is the color distribution over each topic. This gives us a picture of what our color themes actually are!</p>
 <pre class="r"><code>library(dplyr)
 library(purrr)
 library(ggplot2)</code></pre>
@@ -364,7 +366,19 @@ Retrieving dataset form db
 Disconnecting from database 
 Assigning full set set inventories to &#39;set_colors&#39; </code></pre>
 <pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;compare-models.R&quot;))</code></pre>
-<pre class="r"><code>lda_models &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_models_all.RDS&quot;))
+</div>
+<div id="color-distributions-over-topics" class="section level2">
+<h2>Color distributions over topics</h2>
+<p>For these plots the distribution is represented by a weighted relevance score (the same that is used in the <code>LDAvis</code> package).</p>
+<pre class="r"><code>library(dplyr)
+library(ggplot2)
+
+if (!exists(&quot;set_colors&quot;)) {
+    legolda::load_data(sample_data = FALSE)
+    legolda::create_tables(sample_data = FALSE)
+}
+
+lda_models &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_models_all.RDS&quot;))
 
 set_topics &lt;- lda_models %&gt;% purrr::map(function(x) {
     class(x) &lt;- &quot;LDA&quot;
@@ -385,35 +399,617 @@ plot_relevance &lt;- function(top_terms, bgcol) {
     subtitle &lt;- paste0(&quot;Weighted color distribution for &quot;, ntopics, &quot; topics&quot;)
     
     top_terms %&gt;% ggplot(aes(x = -order, y = relevance, fill = term)) + labs(x = &quot;&quot;, 
-        y = &quot;Relevance&quot;, title = &quot;Lego color topics&quot;, subtitle = subtitle) + 
+        y = &quot;Color relevance to topic&quot;, title = &quot;Lego color topics&quot;, subtitle = subtitle) + 
         geom_col(show.legend = FALSE) + facet_wrap(~topic, scales = &quot;free&quot;, 
         nrow = 5) + scale_fill_manual(values = pal) + coord_flip() + theme_bar(bgcol) + 
         theme(axis.text.x = element_blank(), axis.text.y = element_blank(), 
             panel.grid.major.x = element_blank())
 }
 
-top_list &lt;- lda_models %&gt;% map(legolda::top_terms, lambda = 0.7, nterms = 7, 
+top_list &lt;- lda_models %&gt;% purrr::map(legolda::top_terms, lambda = 0.7, nterms = 7, 
     freq = word_freq)
 
 bgcol = &quot;#a8a4a2&quot;
-plot_relevance(top_list[[1]], bgcol)  # 20 topics</code></pre>
+
+plot_relevance(top_list[[2]], bgcol)  # 20 topics</code></pre>
 <p><img src="figure/compare-model-distributions.Rmd/color-distribution-1.png" width="100%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plot_relevance(top_list[[3]], bgcol)  # 40 topics</code></pre>
 <p><img src="figure/compare-model-distributions.Rmd/color-distribution-2.png" width="100%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plot_relevance(top_list[[5]], bgcol)  # 60 topics</code></pre>
 <p><img src="figure/compare-model-distributions.Rmd/color-distribution-3.png" width="100%" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>docs &lt;- lapply(lda_models, function(x) {
-    class(x) &lt;- &quot;LDA&quot;
-    x
-}) %&gt;% 
-purrr::map(tidytext::tidy, matrix = &quot;gamma&quot;)
+<p>Even though our model scores might have leaned towards a model with fewere topics, we can see specific topics where adding more models separates themes that appear to be quite different. The firs two examples are of topic # 2 from the 30 topic model which seems more coherent in the 40 topic model (the sencond plot).</p>
+<div id="topic-2-from-the-30-topic-model" class="section level3">
+<h3>Topic 2 from the 30 topic model</h3>
+<pre class="r"><code>model_num &lt;- 2
+topic_num &lt;- 2
 
-# Which sets are most associated with a topic
-topic_num &lt;- 37
-model_num &lt;- 4
+library(waffle)
+plot_topic &lt;- set_topics[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% 
+    dplyr::arrange(desc(gamma)) %&gt;% head(20)
 
-view_topic &lt;- docs[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
-    head(10) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
+
+waffle_prep &lt;- function(document, sets) {
+    document$set_num &lt;- document$document
+    document %&gt;% left_join(sets, by = &quot;set_num&quot;) %&gt;% select(set_num, name, theme, 
+        year, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
+        mutate(counts = purrr::map(data, table))
+}
+
+bgcol &lt;- &quot;#e8e4e2&quot;
+w1 &lt;- waffle_prep(plot_topic[1, ], set_colors)
+w2 &lt;- waffle_prep(plot_topic[4, ], set_colors)
+w3 &lt;- waffle_prep(plot_topic[6, ], set_colors)
+w4 &lt;- waffle_prep(plot_topic[7, ], set_colors)
+
+waffle::iron(waff(w1, size = 0.5, rows = 1, nchr = 20, bgcol = bgcol), waff(w2, 
+    size = 2, rows = 1, nchr = 13, bgcol = bgcol), waff(w3, size = 0.2, rows = 2, 
+    nchr = 20, bgcol = bgcol), waff(w4, size = 0.2, rows = 4, nchr = 20, bgcol = bgcol))</code></pre>
+<p><img src="figure/compare-model-distributions.Rmd/topic-waffle-2-2-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Which sets are most associated with a topic
+model_num &lt;- 2
+topic_num &lt;- 2
+
+view_topic &lt;- set_topics[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
+    head(50) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
+    by = &quot;set_num&quot;) %&gt;% mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;% 
+    select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;% left_join(theme_df, 
+    by = c(theme_id = &quot;id&quot;)) %&gt;% mutate(theme_name = name) %&gt;% select(topic, 
+    gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
+
+knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic&quot;, 
+    topic_num))</code></pre>
+<table>
+<caption>Sets most associated with topic2</caption>
+<thead>
+<tr class="header">
+<th align="right">topic</th>
+<th align="right">gamma</th>
+<th align="left">set_name</th>
+<th align="left">set_num</th>
+<th align="left">theme_name</th>
+<th align="right">theme_id</th>
+<th align="right">year</th>
+<th align="right">num_parts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.83</td>
+<td align="left">Mr. Magoriums big bo</td>
+<td align="left">66208-1</td>
+<td align="left">Basic Model</td>
+<td align="right">23</td>
+<td align="right">2007</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.76</td>
+<td align="left">Traffic Police Set</td>
+<td align="left">1271-2</td>
+<td align="left">Town Plan</td>
+<td align="right">372</td>
+<td align="right">1956</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.76</td>
+<td align="left">Traffic Police Set</td>
+<td align="left">271-2</td>
+<td align="left">Town Plan</td>
+<td align="right">372</td>
+<td align="right">1958</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.73</td>
+<td align="left">Supplementary Disks</td>
+<td align="left">8508-1</td>
+<td align="left">Throwbot Slizer</td>
+<td align="right">20</td>
+<td align="right">1999</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.68</td>
+<td align="left">Pneumatic Value Pack</td>
+<td align="left">5110-1</td>
+<td align="left">Technic</td>
+<td align="right">453</td>
+<td align="right">1990</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.68</td>
+<td align="left">Bangle Minis</td>
+<td align="left">7501-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2003</td>
+<td align="right">32</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.62</td>
+<td align="left">Trendy Tote Hot Pink</td>
+<td align="left">7510-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2003</td>
+<td align="right">89</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.61</td>
+<td align="left">Advent Calendar 2005</td>
+<td align="left">7574-18</td>
+<td align="left">Clikits</td>
+<td align="right">222</td>
+<td align="right">2005</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.56</td>
+<td align="left">Pretty in Pink Jewel</td>
+<td align="left">7533-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2005</td>
+<td align="right">66</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.56</td>
+<td align="left">Trendy Tote Sky Blue</td>
+<td align="left">7512-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2003</td>
+<td align="right">94</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.56</td>
+<td align="left">Pearly Pink Bracelet</td>
+<td align="left">7554-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2006</td>
+<td align="right">63</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">Bricks and Creations</td>
+<td align="left">4679-1</td>
+<td align="left">Basic Set</td>
+<td align="right">37</td>
+<td align="right">2004</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">Bricks and Creations</td>
+<td align="left">4679-2</td>
+<td align="left">Basic Set</td>
+<td align="right">37</td>
+<td align="right">2005</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">LEGO Creative Value</td>
+<td align="left">66311-1</td>
+<td align="left">Basic Set</td>
+<td align="right">37</td>
+<td align="right">2010</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">Motorized Simple Mac</td>
+<td align="left">9645-1</td>
+<td align="left">Technic</td>
+<td align="right">529</td>
+<td align="right">1997</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">Racers Turbo Pack</td>
+<td align="left">65062-1</td>
+<td align="left">Drome Racers</td>
+<td align="right">113</td>
+<td align="right">2002</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">Vladek Value Pack</td>
+<td align="left">65769-1</td>
+<td align="left">Knights Kingdom II</td>
+<td align="right">198</td>
+<td align="right">2005</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">Advent Calendar 2005</td>
+<td align="left">7574-13</td>
+<td align="left">Clikits</td>
+<td align="right">222</td>
+<td align="right">2005</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.52</td>
+<td align="left">Advent Calendar 2005</td>
+<td align="left">7574-17</td>
+<td align="left">Clikits</td>
+<td align="right">222</td>
+<td align="right">2005</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.51</td>
+<td align="left">Sweet Dreamy Jewels</td>
+<td align="left">7514-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2004</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.49</td>
+<td align="left">Volkswagen Beetle (V</td>
+<td align="left">10187-1</td>
+<td align="left">Sculptures</td>
+<td align="right">276</td>
+<td align="right">2008</td>
+<td align="right">1625</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.46</td>
+<td align="left">Nitro Muscle</td>
+<td align="left">8194-1</td>
+<td align="left">Tiny Turbos</td>
+<td align="right">120</td>
+<td align="right">2010</td>
+<td align="right">47</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.46</td>
+<td align="left">Rip</td>
+<td align="left">4574-1</td>
+<td align="left">Xalax</td>
+<td align="right">125</td>
+<td align="right">2001</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.46</td>
+<td align="left">Galaxy Patrol - Comp</td>
+<td align="left">8831-8</td>
+<td align="left">Series 7 Minifigures</td>
+<td align="right">542</td>
+<td align="right">2012</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.45</td>
+<td align="left">Jewels-n-Rings</td>
+<td align="left">7507-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2003</td>
+<td align="right">80</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.45</td>
+<td align="left">Blooms &amp; Butterflies</td>
+<td align="left">7557-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2005</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.44</td>
+<td align="left">Rebel A-wing Pilot</td>
+<td align="left">5004408-1</td>
+<td align="left">Star Wars Rebels</td>
+<td align="right">182</td>
+<td align="right">2016</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.42</td>
+<td align="left">Advent Calendar 2005</td>
+<td align="left">7574-19</td>
+<td align="left">Clikits</td>
+<td align="right">222</td>
+<td align="right">2005</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.42</td>
+<td align="left">Interface Card and C</td>
+<td align="left">9771-1</td>
+<td align="left">Supplemental</td>
+<td align="right">532</td>
+<td align="right">1989</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.42</td>
+<td align="left">Tropical Breeze Jewe</td>
+<td align="left">7546-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2006</td>
+<td align="right">73</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.41</td>
+<td align="left">Advent Calendar 2004</td>
+<td align="left">7575-8</td>
+<td align="left">Clikits</td>
+<td align="right">222</td>
+<td align="right">2004</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.41</td>
+<td align="left">Le Fleuriste Collect</td>
+<td align="left">lfv3-1</td>
+<td align="left">Other</td>
+<td align="right">301</td>
+<td align="right">2010</td>
+<td align="right">350</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.41</td>
+<td align="left">Advent Calendar 2005</td>
+<td align="left">7574-5</td>
+<td align="left">Clikits</td>
+<td align="right">222</td>
+<td align="right">2005</td>
+<td align="right">8</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.40</td>
+<td align="left">Friendship Frame / M</td>
+<td align="left">7504-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2004</td>
+<td align="right">15</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.39</td>
+<td align="left">Micro Mecha Horse</td>
+<td align="left">MYERNEXO-2</td>
+<td align="left">Nexo Knights</td>
+<td align="right">605</td>
+<td align="right">2016</td>
+<td align="right">24</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.39</td>
+<td align="left">Pretty in Pink Beaut</td>
+<td align="left">7527-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2005</td>
+<td align="right">136</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.37</td>
+<td align="left">Captain America</td>
+<td align="left">41589-1</td>
+<td align="left">Brickheadz</td>
+<td align="right">610</td>
+<td align="right">2017</td>
+<td align="right">79</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">12V Replacement Elec</td>
+<td align="left">703-1</td>
+<td align="left">12V</td>
+<td align="right">242</td>
+<td align="right">1969</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Advent Calendar 2011</td>
+<td align="left">7958-1</td>
+<td align="left">Star Wars</td>
+<td align="right">209</td>
+<td align="right">2011</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Adventurers Value Pa</td>
+<td align="left">1024601-1</td>
+<td align="left">Desert</td>
+<td align="right">297</td>
+<td align="right">2001</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Click-N-Store Jewelr</td>
+<td align="left">65542-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2004</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Color Sensor for Min</td>
+<td align="left">MS1038-1</td>
+<td align="left">NXT</td>
+<td align="right">259</td>
+<td align="right">2006</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Environment Plate</td>
+<td align="left">359-1</td>
+<td align="left">Supplemental</td>
+<td align="right">473</td>
+<td align="right">1972</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Infrared Seeker for</td>
+<td align="left">2852725-1</td>
+<td align="left">NXT</td>
+<td align="right">259</td>
+<td align="right">2011</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Jewels-n-Bands Click</td>
+<td align="left">65363-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2004</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Jewels-n-Clips Click</td>
+<td align="left">65364-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2004</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Jewels-n-Rings Click</td>
+<td align="left">65362-1</td>
+<td align="left">Clikits</td>
+<td align="right">500</td>
+<td align="right">2004</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Knights’ Kingdom Adv</td>
+<td align="left">50799-1</td>
+<td align="left">Knights Kingdom II</td>
+<td align="right">198</td>
+<td align="right">2005</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Knights’ Kingdom Val</td>
+<td align="left">kk2vp1-1</td>
+<td align="left">Knights Kingdom II</td>
+<td align="right">198</td>
+<td align="right">2004</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Knights’ Kingdom Val</td>
+<td align="left">kk2vp2-1</td>
+<td align="left">Knights Kingdom II</td>
+<td align="right">198</td>
+<td align="right">2004</td>
+<td align="right">3</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>saveRDS(view_topic, here::here(&quot;inst&quot;, &quot;data&quot;, &quot;view-topic-2-2.RDS&quot;))</code></pre>
+</div>
+<div id="topic-2-from-the-40-topic-model" class="section level3">
+<h3>Topic 2 from the 40 topic model</h3>
+<pre class="r"><code>model_num &lt;- 3
+topic_num &lt;- 2
+
+library(waffle)
+plot_topic &lt;- set_topics[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% 
+    dplyr::arrange(desc(gamma)) %&gt;% head(20)
+
+
+waffle_prep &lt;- function(document, sets) {
+    document$set_num &lt;- document$document
+    document %&gt;% left_join(sets, by = &quot;set_num&quot;) %&gt;% select(set_num, name, theme, 
+        year, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
+        mutate(counts = purrr::map(data, table))
+}
+
+bgcol &lt;- &quot;#e8e4e2&quot;
+w1 &lt;- waffle_prep(plot_topic[1, ], set_colors)
+w2 &lt;- waffle_prep(plot_topic[4, ], set_colors)
+w3 &lt;- waffle_prep(plot_topic[6, ], set_colors)
+w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
+
+waffle::iron(waff(w1, size = 0.5, rows = 1, nchr = 20, bgcol = bgcol), waff(w2, 
+    size = 2, rows = 4, nchr = 13, bgcol = bgcol), waff(w3, size = 0.2, rows = 3, 
+    nchr = 20, bgcol = bgcol), waff(w4, size = 0.2, rows = 2, nchr = 20, bgcol = bgcol))</code></pre>
+<p><img src="figure/compare-model-distributions.Rmd/topic-waffle-3-2-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Which sets are most associated with a topic
+model_num &lt;- 3
+topic_num &lt;- 2
+
+view_topic &lt;- set_topics[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
+    head(50) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
     by = &quot;set_num&quot;) %&gt;% mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;% 
     select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;% left_join(theme_df, 
     by = c(theme_id = &quot;id&quot;)) %&gt;% mutate(theme_name = name) %&gt;% select(topic, 
@@ -436,351 +1032,8 @@ knitr::kable(view_topic, caption = &quot;Sets most associated with topic 37&quot
 </thead>
 <tbody>
 <tr class="odd">
-<td align="right">37</td>
-<td align="right">0.81</td>
-<td align="left">Advent Calendar 2013</td>
-<td align="left">41016-13</td>
-<td align="left">Friends</td>
-<td align="right">226</td>
-<td align="right">2013</td>
-<td align="right">8</td>
-</tr>
-<tr class="even">
-<td align="right">37</td>
-<td align="right">0.73</td>
-<td align="left">Monthly Mini Model B</td>
-<td align="left">40068-1</td>
-<td align="left">Monthly Mini Model Build</td>
-<td align="right">409</td>
-<td align="right">2013</td>
-<td align="right">31</td>
-</tr>
-<tr class="odd">
-<td align="right">37</td>
-<td align="right">0.72</td>
-<td align="left">Cinderella’s Carriag</td>
-<td align="left">6153-1</td>
-<td align="left">Duplo</td>
-<td align="right">504</td>
-<td align="right">2012</td>
-<td align="right">20</td>
-</tr>
-<tr class="even">
-<td align="right">37</td>
-<td align="right">0.70</td>
-<td align="left">Advent Calendar 2014</td>
-<td align="left">41040-4</td>
-<td align="left">Friends</td>
-<td align="right">226</td>
-<td align="right">2014</td>
-<td align="right">4</td>
-</tr>
-<tr class="odd">
-<td align="right">37</td>
-<td align="right">0.66</td>
-<td align="left">Advent Calendar 2012</td>
-<td align="left">3316-3</td>
-<td align="left">Friends</td>
-<td align="right">226</td>
-<td align="right">2012</td>
-<td align="right">9</td>
-</tr>
-<tr class="even">
-<td align="right">37</td>
-<td align="right">0.66</td>
-<td align="left">Advent Calendar 2013</td>
-<td align="left">41016-2</td>
-<td align="left">Friends</td>
-<td align="right">226</td>
-<td align="right">2013</td>
-<td align="right">4</td>
-</tr>
-<tr class="odd">
-<td align="right">37</td>
-<td align="right">0.63</td>
-<td align="left">Play House</td>
-<td align="left">10505-1</td>
-<td align="left">Duplo</td>
-<td align="right">504</td>
-<td align="right">2013</td>
-<td align="right">83</td>
-</tr>
-<tr class="even">
-<td align="right">37</td>
-<td align="right">0.63</td>
-<td align="left">Sleeping Beauty’s Fa</td>
-<td align="left">10542-1</td>
-<td align="left">Disney Princess</td>
-<td align="right">579</td>
-<td align="right">2014</td>
-<td align="right">55</td>
-</tr>
-<tr class="odd">
-<td align="right">37</td>
-<td align="right">0.62</td>
-<td align="left">Cinderella’s Castle</td>
-<td align="left">6154-1</td>
-<td align="left">Duplo</td>
-<td align="right">504</td>
-<td align="right">2012</td>
-<td align="right">77</td>
-</tr>
-<tr class="even">
-<td align="right">37</td>
-<td align="right">0.62</td>
-<td align="left">LEGO® Friends Notebo</td>
-<td align="left">850595-1</td>
-<td align="left">Gear</td>
-<td align="right">501</td>
-<td align="right">2014</td>
-<td align="right">16</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>library(waffle)
-plot_topic &lt;- docs[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% dplyr::arrange(desc(gamma)) %&gt;% 
-    head(20)
-
-
-waffle_prep &lt;- function(document, sets) {
-    document$set_num &lt;- document$document
-    document %&gt;% left_join(sets, by = &quot;set_num&quot;) %&gt;% select(set_num, name, theme, 
-        year, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
-        mutate(counts = purrr::map(data, table))
-}
-
-bgcol &lt;- &quot;#e8e4e2&quot;
-w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
-w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
-w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
-w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
-
-waffle::iron(waff(w1, size = 0.5, rows = 1, nchr = 20, bgcol = bgcol), waff(w2, 
-    size = 2, rows = 1, nchr = 13, bgcol = bgcol), waff(w3, size = 0.2, rows = 4, 
-    nchr = 20, bgcol = bgcol), waff(w4, size = 0.2, rows = 3, nchr = 13, bgcol = bgcol))</code></pre>
-<p><img src="figure/compare-model-distributions.Rmd/waffle-topic-1.png" width="100%" style="display: block; margin: auto;" /></p>
-<pre class="r"><code># Which sets are most associated with a topic
-topic_num &lt;- 19
-model_num &lt;- 4
-
-view_topic &lt;- docs[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
-    head(10) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
-    by = &quot;set_num&quot;) %&gt;% mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;% 
-    select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;% left_join(theme_df, 
-    by = c(theme_id = &quot;id&quot;)) %&gt;% mutate(theme_name = name) %&gt;% select(topic, 
-    gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
-
-knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, 
-    topic_num))</code></pre>
-<table>
-<caption>Sets most associated with topic 19</caption>
-<thead>
-<tr class="header">
-<th align="right">topic</th>
-<th align="right">gamma</th>
-<th align="left">set_name</th>
-<th align="left">set_num</th>
-<th align="left">theme_name</th>
-<th align="right">theme_id</th>
-<th align="right">year</th>
-<th align="right">num_parts</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">19</td>
-<td align="right">0.76</td>
-<td align="left">Flying Warrior</td>
-<td align="left">71011-6</td>
-<td align="left">Series 15 Minifigures</td>
-<td align="right">554</td>
-<td align="right">2016</td>
-<td align="right">11</td>
-</tr>
-<tr class="even">
-<td align="right">19</td>
-<td align="right">0.72</td>
-<td align="left">Titanium Zane</td>
-<td align="left">NIN891617-1</td>
-<td align="left">Ninjago</td>
-<td align="right">435</td>
-<td align="right">2016</td>
-<td align="right">15</td>
-</tr>
-<tr class="odd">
-<td align="right">19</td>
-<td align="right">0.63</td>
-<td align="left">Lloyd Fun Pack</td>
-<td align="left">71239-1</td>
-<td align="left">Dimensions</td>
-<td align="right">604</td>
-<td align="right">2016</td>
-<td align="right">56</td>
-</tr>
-<tr class="even">
-<td align="right">19</td>
-<td align="right">0.61</td>
-<td align="left">Cole foil pack</td>
-<td align="left">891611-1</td>
-<td align="left">Ninjago</td>
-<td align="right">435</td>
-<td align="right">2016</td>
-<td align="right">16</td>
-</tr>
-<tr class="odd">
-<td align="right">19</td>
-<td align="right">0.58</td>
-<td align="left">Rocka 3.0</td>
-<td align="left">2143-1</td>
-<td align="left">Heroes</td>
-<td align="right">401</td>
-<td align="right">2011</td>
-<td align="right">30</td>
-</tr>
-<tr class="even">
-<td align="right">19</td>
-<td align="right">0.57</td>
-<td align="left">Zamor Spheres</td>
-<td align="left">8719-1</td>
-<td align="left">Supplemental</td>
-<td align="right">346</td>
-<td align="right">2006</td>
-<td align="right">10</td>
-</tr>
-<tr class="odd">
-<td align="right">19</td>
+<td align="right">2</td>
 <td align="right">0.56</td>
-<td align="left">Advent Calendar 2013</td>
-<td align="left">75023-4</td>
-<td align="left">Star Wars</td>
-<td align="right">225</td>
-<td align="right">2013</td>
-<td align="right">9</td>
-</tr>
-<tr class="even">
-<td align="right">19</td>
-<td align="right">0.54</td>
-<td align="left">Peter Pan</td>
-<td align="left">71012-15</td>
-<td align="left">Disney</td>
-<td align="right">555</td>
-<td align="right">2016</td>
-<td align="right">7</td>
-</tr>
-<tr class="odd">
-<td align="right">19</td>
-<td align="right">0.54</td>
-<td align="left">Irnakk</td>
-<td align="left">8626-1</td>
-<td align="left">Titans</td>
-<td align="right">347</td>
-<td align="right">2006</td>
-<td align="right">11</td>
-</tr>
-<tr class="even">
-<td align="right">19</td>
-<td align="right">0.54</td>
-<td align="left">Samurai droid</td>
-<td align="left">SAMURAI-DROID-1</td>
-<td align="left">Ninjago</td>
-<td align="right">435</td>
-<td align="right">2015</td>
-<td align="right">32</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>topic_num &lt;- 19
-plot_topic &lt;- docs[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% dplyr::arrange(desc(gamma)) %&gt;% 
-    head(20)
-# plot_topic
-
-waffle_prep &lt;- function(document, sets) {
-    document$set_num &lt;- document$document
-    document %&gt;% left_join(sets, by = &quot;set_num&quot;) %&gt;% select(set_num, name, theme, 
-        year, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
-        mutate(counts = purrr::map(data, table))
-}
-
-w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
-w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
-w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
-w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
-
-waffle::iron(waff(w1, size = 0.5, rows = 3, nchr = 20, bgcol = bgcol), waff(w2, 
-    size = 0.5, rows = 1, nchr = 13, bgcol = bgcol), waff(w3, size = 0.5, rows = 1, 
-    nchr = 20, bgcol = bgcol), waff(w4, size = 0.5, rows = 1, nchr = 13, bgcol = bgcol))</code></pre>
-<p><img src="figure/compare-model-distributions.Rmd/waffle-topic2-1.png" width="100%" style="display: block; margin: auto;" /></p>
-<pre class="r"><code># Which sets are most associated with a topic
-topic_num &lt;- 2
-model_num &lt;- 4
-
-view_topic &lt;- docs[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
-    head(10) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
-    by = &quot;set_num&quot;) %&gt;% mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;% 
-    select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;% left_join(theme_df, 
-    by = c(theme_id = &quot;id&quot;)) %&gt;% mutate(theme_name = name) %&gt;% select(topic, 
-    gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
-
-knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, 
-    topic_num))</code></pre>
-<table>
-<caption>Sets most associated with topic 2</caption>
-<thead>
-<tr class="header">
-<th align="right">topic</th>
-<th align="right">gamma</th>
-<th align="left">set_name</th>
-<th align="left">set_num</th>
-<th align="left">theme_name</th>
-<th align="right">theme_id</th>
-<th align="right">year</th>
-<th align="right">num_parts</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">2</td>
-<td align="right">0.53</td>
-<td align="left">Kendo Fighter</td>
-<td align="left">71011-12</td>
-<td align="left">Series 15 Minifigures</td>
-<td align="right">554</td>
-<td align="right">2016</td>
-<td align="right">7</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="right">0.52</td>
-<td align="left">Volkswagen Beetle (V</td>
-<td align="left">10187-1</td>
-<td align="left">Sculptures</td>
-<td align="right">276</td>
-<td align="right">2008</td>
-<td align="right">1625</td>
-</tr>
-<tr class="odd">
-<td align="right">2</td>
-<td align="right">0.47</td>
-<td align="left">Galaxy Patrol - Comp</td>
-<td align="left">8831-8</td>
-<td align="left">Series 7 Minifigures</td>
-<td align="right">542</td>
-<td align="right">2012</td>
-<td align="right">7</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="right">0.47</td>
-<td align="left">Nitro Muscle</td>
-<td align="left">8194-1</td>
-<td align="left">Tiny Turbos</td>
-<td align="right">120</td>
-<td align="right">2010</td>
-<td align="right">47</td>
-</tr>
-<tr class="odd">
-<td align="right">2</td>
-<td align="right">0.45</td>
 <td align="left">Rip</td>
 <td align="left">4574-1</td>
 <td align="left">Xalax</td>
@@ -790,13 +1043,93 @@ knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic 
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">0.41</td>
+<td align="right">0.51</td>
+<td align="left">Volkswagen Beetle (V</td>
+<td align="left">10187-1</td>
+<td align="left">Sculptures</td>
+<td align="right">276</td>
+<td align="right">2008</td>
+<td align="right">1625</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.50</td>
+<td align="left">Gavla</td>
+<td align="left">8948-1</td>
+<td align="left">Matoran of Light</td>
+<td align="right">333</td>
+<td align="right">2008</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.50</td>
+<td align="left">Toa Gali</td>
+<td align="left">8688-1</td>
+<td align="left">Mistika</td>
+<td align="right">338</td>
+<td align="right">2008</td>
+<td align="right">60</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.49</td>
+<td align="left">Piraka</td>
+<td align="left">7137-1</td>
+<td align="left">Stars</td>
+<td align="right">345</td>
+<td align="right">2010</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.46</td>
+<td align="left">Nitro Muscle</td>
+<td align="left">8194-1</td>
+<td align="left">Tiny Turbos</td>
+<td align="right">120</td>
+<td align="right">2010</td>
+<td align="right">47</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.46</td>
+<td align="left">Galaxy Patrol - Comp</td>
+<td align="left">8831-8</td>
+<td align="left">Series 7 Minifigures</td>
+<td align="right">542</td>
+<td align="right">2012</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.45</td>
 <td align="left">Micro Mecha Horse</td>
 <td align="left">MYERNEXO-2</td>
 <td align="left">Nexo Knights</td>
 <td align="right">605</td>
 <td align="right">2016</td>
 <td align="right">24</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.44</td>
+<td align="left">Dunkan Bulk</td>
+<td align="left">7168-1</td>
+<td align="left">Heroes</td>
+<td align="right">401</td>
+<td align="right">2010</td>
+<td align="right">17</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.42</td>
+<td align="left">Tarix</td>
+<td align="left">8981-1</td>
+<td align="left">Glatorian</td>
+<td align="right">331</td>
+<td align="right">2009</td>
+<td align="right">57</td>
 </tr>
 <tr class="odd">
 <td align="right">2</td>
@@ -810,7 +1143,7 @@ knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic 
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">0.40</td>
+<td align="right">0.39</td>
 <td align="left">Captain America</td>
 <td align="left">41589-1</td>
 <td align="left">Brickheadz</td>
@@ -820,17 +1153,57 @@ knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic 
 </tr>
 <tr class="odd">
 <td align="right">2</td>
-<td align="right">0.36</td>
-<td align="left">Zombie Businessman</td>
-<td align="left">71010-13</td>
-<td align="left">Series 14 Minifigures</td>
-<td align="right">552</td>
-<td align="right">2015</td>
-<td align="right">7</td>
+<td align="right">0.38</td>
+<td align="left">Vahki Bordakh</td>
+<td align="left">8615-1</td>
+<td align="left">Vahki</td>
+<td align="right">357</td>
+<td align="right">2004</td>
+<td align="right">32</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">0.35</td>
+<td align="right">0.37</td>
+<td align="left">Toa Mahri Hahli</td>
+<td align="left">8914-1</td>
+<td align="left">Toa Mahri</td>
+<td align="right">352</td>
+<td align="right">2007</td>
+<td align="right">58</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.37</td>
+<td align="left">Vahki Bordakh Limite</td>
+<td align="left">8615-2</td>
+<td align="left">Vahki</td>
+<td align="right">357</td>
+<td align="right">2004</td>
+<td align="right">33</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.37</td>
+<td align="left">Kendo Fighter</td>
+<td align="left">71011-12</td>
+<td align="left">Series 15 Minifigures</td>
+<td align="right">554</td>
+<td align="right">2016</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Robin</td>
+<td align="left">NEX271714-1</td>
+<td align="left">Nexo Knights</td>
+<td align="right">605</td>
+<td align="right">2017</td>
+<td align="right">19</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
 <td align="left">Globert</td>
 <td align="left">41533-1</td>
 <td align="left">Series 4</td>
@@ -838,11 +1211,336 @@ knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic 
 <td align="right">2015</td>
 <td align="right">45</td>
 </tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Vamprah</td>
+<td align="left">8692-1</td>
+<td align="left">Phantoka</td>
+<td align="right">339</td>
+<td align="right">2008</td>
+<td align="right">48</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.36</td>
+<td align="left">Gelu</td>
+<td align="left">8988-1</td>
+<td align="left">Glatorian Legends</td>
+<td align="right">332</td>
+<td align="right">2009</td>
+<td align="right">52</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.35</td>
+<td align="left">Advent Calendar 2014</td>
+<td align="left">75056-7</td>
+<td align="left">Star Wars</td>
+<td align="right">225</td>
+<td align="right">2014</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.34</td>
+<td align="left">ChromaStone</td>
+<td align="left">8411-1</td>
+<td align="left">Ben 10</td>
+<td align="right">270</td>
+<td align="right">2010</td>
+<td align="right">21</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.34</td>
+<td align="left">Kiina</td>
+<td align="left">8987-1</td>
+<td align="left">Glatorian Legends</td>
+<td align="right">332</td>
+<td align="right">2009</td>
+<td align="right">43</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.33</td>
+<td align="left">Advent Calendar 2008</td>
+<td align="left">7979-4</td>
+<td align="left">Castle</td>
+<td align="right">219</td>
+<td align="right">2008</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.32</td>
+<td align="left">Hockey Player - Comp</td>
+<td align="left">8804-8</td>
+<td align="left">Series 4 Minifigures</td>
+<td align="right">539</td>
+<td align="right">2011</td>
+<td align="right">11</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.32</td>
+<td align="left">Vezok</td>
+<td align="left">8902-1</td>
+<td align="left">Piraka</td>
+<td align="right">340</td>
+<td align="right">2006</td>
+<td align="right">41</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.31</td>
+<td align="left">Advent Calendar 2008</td>
+<td align="left">7979-2</td>
+<td align="left">Castle</td>
+<td align="right">219</td>
+<td align="right">2008</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.31</td>
+<td align="left">Toa Nokama</td>
+<td align="left">8602-1</td>
+<td align="left">Toa Metru</td>
+<td align="right">353</td>
+<td align="right">2004</td>
+<td align="right">46</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.31</td>
+<td align="left">Visorak Battle Ram</td>
+<td align="left">8757-1</td>
+<td align="left">Playsets</td>
+<td align="right">341</td>
+<td align="right">2005</td>
+<td align="right">190</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.31</td>
+<td align="left">Advent Calendar 2010</td>
+<td align="left">7952-14</td>
+<td align="left">Castle</td>
+<td align="right">219</td>
+<td align="right">2010</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.31</td>
+<td align="left">MTT</td>
+<td align="left">30059-1</td>
+<td align="left">Star Wars</td>
+<td align="right">158</td>
+<td align="right">2012</td>
+<td align="right">51</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.31</td>
+<td align="left">Spidermonkey</td>
+<td align="left">8409-1</td>
+<td align="left">Ben 10</td>
+<td align="right">270</td>
+<td align="right">2010</td>
+<td align="right">21</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.30</td>
+<td align="left">Loki’s Cosmic Cube E</td>
+<td align="left">6867-1</td>
+<td align="left">Avengers</td>
+<td align="right">487</td>
+<td align="right">2012</td>
+<td align="right">180</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.30</td>
+<td align="left">Combo NEXO Powers Wa</td>
+<td align="left">70372-1</td>
+<td align="left">Nexo Knights</td>
+<td align="right">605</td>
+<td align="right">2017</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.30</td>
+<td align="left">Toa Tahu</td>
+<td align="left">8689-1</td>
+<td align="left">Mistika</td>
+<td align="right">338</td>
+<td align="right">2008</td>
+<td align="right">73</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.30</td>
+<td align="left">Rahaga Gaaki</td>
+<td align="left">4868-1</td>
+<td align="left">Rahaga</td>
+<td align="right">342</td>
+<td align="right">2005</td>
+<td align="right">28</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Vulture Droid foil p</td>
+<td align="left">SW911723-1</td>
+<td align="left">Star Wars Episode 3</td>
+<td align="right">162</td>
+<td align="right">2017</td>
+<td align="right">35</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Inika Toa Hahli</td>
+<td align="left">8728-1</td>
+<td align="left">Toa Inika</td>
+<td align="right">351</td>
+<td align="right">2006</td>
+<td align="right">46</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Joachim Löw</td>
+<td align="left">71014-1</td>
+<td align="left">DFB Minifigures</td>
+<td align="right">557</td>
+<td align="right">2016</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Jor-El</td>
+<td align="left">5001623-1</td>
+<td align="left">Superman</td>
+<td align="right">489</td>
+<td align="right">2013</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Police Patrol</td>
+<td align="left">4963-1</td>
+<td align="left">Duplo</td>
+<td align="right">504</td>
+<td align="right">2006</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Boogly</td>
+<td align="left">41535-1</td>
+<td align="left">Series 4</td>
+<td align="right">584</td>
+<td align="right">2015</td>
+<td align="right">52</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Lava Chamber Gate</td>
+<td align="left">8893-1</td>
+<td align="left">Playsets</td>
+<td align="right">341</td>
+<td align="right">2006</td>
+<td align="right">375</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Starblaster Showdown</td>
+<td align="left">76019-1</td>
+<td align="left">Guardians of the Galaxy</td>
+<td align="right">483</td>
+<td align="right">2014</td>
+<td align="right">195</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.29</td>
+<td align="left">Dalu</td>
+<td align="left">8726-1</td>
+<td align="left">Matoran of Voya Nui</td>
+<td align="right">337</td>
+<td align="right">2006</td>
+<td align="right">25</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.28</td>
+<td align="left">Sir Jayko</td>
+<td align="left">8792-1</td>
+<td align="left">Knights Kingdom II</td>
+<td align="right">198</td>
+<td align="right">2005</td>
+<td align="right">42</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.28</td>
+<td align="left">Duplo Airport Rescue</td>
+<td align="left">7844-1</td>
+<td align="left">Duplo</td>
+<td align="right">504</td>
+<td align="right">2004</td>
+<td align="right">28</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.28</td>
+<td align="left">Vampos</td>
+<td align="left">41534-1</td>
+<td align="left">Series 4</td>
+<td align="right">584</td>
+<td align="right">2015</td>
+<td align="right">59</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">0.28</td>
+<td align="left">Sir Adric</td>
+<td align="left">8704-1</td>
+<td align="left">Knights Kingdom II</td>
+<td align="right">198</td>
+<td align="right">2006</td>
+<td align="right">40</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.28</td>
+<td align="left">Inika Toa Hewkii</td>
+<td align="left">8730-1</td>
+<td align="left">Toa Inika</td>
+<td align="right">351</td>
+<td align="right">2006</td>
+<td align="right">62</td>
+</tr>
 </tbody>
 </table>
-<pre class="r"><code>topic_num &lt;- 2
-plot_topic &lt;- docs[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% dplyr::arrange(desc(gamma)) %&gt;% 
-    head(20)
+<pre class="r"><code>saveRDS(view_topic, here::here(&quot;inst&quot;, &quot;data&quot;, &quot;view-topic-3-2.RDS&quot;))</code></pre>
+<p>One final plot from topic 32 that I looked questionable but seems to have grouped some related (if small) sets.</p>
+<pre class="r"><code># Which sets are most associated with a topic
+model_num &lt;- 3
+topic_num &lt;- 32
+
+plot_topic &lt;- set_topics[[model_num]] %&gt;% dplyr::filter(topic == topic_num) %&gt;% 
+    dplyr::arrange(desc(gamma)) %&gt;% head(10)
 # plot_topic
 
 waffle_prep &lt;- function(document, sets) {
@@ -852,15 +1550,547 @@ waffle_prep &lt;- function(document, sets) {
         mutate(counts = purrr::map(data, table))
 }
 
-w1 &lt;- waffle_prep(plot_topic[5, ], set_colors)
-w2 &lt;- waffle_prep(plot_topic[6, ], set_colors)
-w3 &lt;- waffle_prep(plot_topic[7, ], set_colors)
-w4 &lt;- waffle_prep(plot_topic[8, ], set_colors)
+w1 &lt;- waffle_prep(plot_topic[1, ], set_colors)
+w2 &lt;- waffle_prep(plot_topic[4, ], set_colors)
+w3 &lt;- waffle_prep(plot_topic[6, ], set_colors)
+w4 &lt;- waffle_prep(plot_topic[7, ], set_colors)
 
 waffle::iron(waff(w1, size = 0.5, rows = 1, nchr = 20, bgcol = bgcol), waff(w2, 
-    size = 0.2, rows = 3, nchr = 20, bgcol = bgcol), waff(w3, size = 0.5, rows = 6, 
-    nchr = 20, bgcol = bgcol), waff(w4, size = 0.5, rows = 4, nchr = 20, bgcol = bgcol))</code></pre>
-<p><img src="figure/compare-model-distributions.Rmd/waffle-topic3-1.png" width="100%" style="display: block; margin: auto;" /></p>
+    size = 0.5, rows = 4, nchr = 18, bgcol = bgcol), waff(w3, size = 0.5, rows = 1, 
+    nchr = 19, bgcol = bgcol), waff(w4, size = 0.5, rows = 4, nchr = 20, bgcol = bgcol))</code></pre>
+<p><img src="figure/compare-model-distributions.Rmd/topic-waffle-3-32-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>model_num &lt;- 3
+topic_num &lt;- 32
+
+view_topic &lt;- set_topics[[model_num]] %&gt;% filter(topic == topic_num) %&gt;% arrange(desc(gamma)) %&gt;% 
+    head(50) %&gt;% mutate(set_num = document, gamma = round(gamma, 2)) %&gt;% left_join(sets_df, 
+    by = &quot;set_num&quot;) %&gt;% mutate(set_name = stringr::str_sub(name, 1, 20)) %&gt;% 
+    select(topic, gamma, set_name, set_num, theme_id, year, num_parts) %&gt;% left_join(theme_df, 
+    by = c(theme_id = &quot;id&quot;)) %&gt;% mutate(theme_name = name) %&gt;% select(topic, 
+    gamma, set_name, set_num, theme_name, theme_id, year, num_parts)
+
+saveRDS(view_topic, here::here(&quot;inst&quot;, &quot;data&quot;, &quot;view-topic-32-3.RDS&quot;))
+
+knitr::kable(view_topic, caption = paste0(&quot;Sets most associated with topic &quot;, 
+    topic_num))</code></pre>
+<table>
+<caption>Sets most associated with topic 32</caption>
+<thead>
+<tr class="header">
+<th align="right">topic</th>
+<th align="right">gamma</th>
+<th align="left">set_name</th>
+<th align="left">set_num</th>
+<th align="left">theme_name</th>
+<th align="right">theme_id</th>
+<th align="right">year</th>
+<th align="right">num_parts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.77</td>
+<td align="left">Advent Calendar 2007</td>
+<td align="left">7907-19</td>
+<td align="left">City</td>
+<td align="right">220</td>
+<td align="right">2007</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.60</td>
+<td align="left">Advent Calendar 2008</td>
+<td align="left">7979-16</td>
+<td align="left">Castle</td>
+<td align="right">219</td>
+<td align="right">2008</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.57</td>
+<td align="left">Advent Calendar 2009</td>
+<td align="left">7687-10</td>
+<td align="left">City</td>
+<td align="right">220</td>
+<td align="right">2009</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.56</td>
+<td align="left">Small Plates, Disks</td>
+<td align="left">5198-1</td>
+<td align="left">Service Packs</td>
+<td align="right">443</td>
+<td align="right">1989</td>
+<td align="right">56</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.55</td>
+<td align="left">Light Prisms &amp; Holde</td>
+<td align="left">1147-1</td>
+<td align="left">Train</td>
+<td align="right">456</td>
+<td align="right">1981</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.55</td>
+<td align="left">Light Transmitting E</td>
+<td align="left">5073-1</td>
+<td align="left">Train</td>
+<td align="right">456</td>
+<td align="right">1987</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.52</td>
+<td align="left">LEGO Heart (Legoland</td>
+<td align="left">llca8-1</td>
+<td align="left">Legoland Parks</td>
+<td align="right">425</td>
+<td align="right">2004</td>
+<td align="right">58</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.50</td>
+<td align="left">Kanoka Launcher And</td>
+<td align="left">3259-1</td>
+<td align="left">Supplemental</td>
+<td align="right">346</td>
+<td align="right">2004</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.48</td>
+<td align="left">Advent Calendar 2014</td>
+<td align="left">60063-14</td>
+<td align="left">City</td>
+<td align="right">220</td>
+<td align="right">2014</td>
+<td align="right">8</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.46</td>
+<td align="left">Surface Hopper</td>
+<td align="left">6806-1</td>
+<td align="left">Classic Space</td>
+<td align="right">130</td>
+<td align="right">1985</td>
+<td align="right">23</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.46</td>
+<td align="left">Space Light and Rada</td>
+<td align="left">5042-1</td>
+<td align="left">Space</td>
+<td align="right">452</td>
+<td align="right">1991</td>
+<td align="right">50</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.46</td>
+<td align="left">Small Plates with To</td>
+<td align="left">5053-1</td>
+<td align="left">Service Packs</td>
+<td align="right">443</td>
+<td align="right">1993</td>
+<td align="right">76</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.45</td>
+<td align="left">Advent Calendar 2006</td>
+<td align="left">7904-11</td>
+<td align="left">City</td>
+<td align="right">220</td>
+<td align="right">2006</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.45</td>
+<td align="left">Advent Calendar 2005</td>
+<td align="left">7324-13</td>
+<td align="left">City</td>
+<td align="right">220</td>
+<td align="right">2005</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.44</td>
+<td align="left">Transparent Bricks</td>
+<td align="left">16-1</td>
+<td align="left">Service Packs</td>
+<td align="right">443</td>
+<td align="right">1988</td>
+<td align="right">32</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.44</td>
+<td align="left">Muji Christmas Set</td>
+<td align="left">8465934-1</td>
+<td align="left">Other</td>
+<td align="right">301</td>
+<td align="right">2009</td>
+<td align="right">120</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.44</td>
+<td align="left">Light and Transparen</td>
+<td align="left">9866-1</td>
+<td align="left">Technic</td>
+<td align="right">1</td>
+<td align="right">1992</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.44</td>
+<td align="left">Light Bricks (4.5V)</td>
+<td align="left">1344-1</td>
+<td align="left">Service Packs</td>
+<td align="right">524</td>
+<td align="right">1986</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.44</td>
+<td align="left">Advent Calendar 2009</td>
+<td align="left">6299-3</td>
+<td align="left">Pirates</td>
+<td align="right">224</td>
+<td align="right">2009</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.41</td>
+<td align="left">Advent Calendar 1998</td>
+<td align="left">1298-4</td>
+<td align="left">Classic Basic</td>
+<td align="right">221</td>
+<td align="right">1998</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.41</td>
+<td align="left">Holiday Ornament wit</td>
+<td align="left">853344-1</td>
+<td align="left">Christmas</td>
+<td align="right">227</td>
+<td align="right">2011</td>
+<td align="right">32</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.41</td>
+<td align="left">Advent Calendar 2005</td>
+<td align="left">7324-15</td>
+<td align="left">City</td>
+<td align="right">220</td>
+<td align="right">2005</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.41</td>
+<td align="left">Monthly Mini Model B</td>
+<td align="left">40040-1</td>
+<td align="left">Monthly Mini Model Build</td>
+<td align="right">409</td>
+<td align="right">2012</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.41</td>
+<td align="left">Transparent Bricks</td>
+<td align="left">5156-1</td>
+<td align="left">Service Packs</td>
+<td align="right">443</td>
+<td align="right">1991</td>
+<td align="right">17</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.41</td>
+<td align="left">Wizard</td>
+<td align="left">7955-1</td>
+<td align="left">Kingdoms</td>
+<td align="right">196</td>
+<td align="right">2010</td>
+<td align="right">19</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.41</td>
+<td align="left">Advent Calendar 2013</td>
+<td align="left">60024-13</td>
+<td align="left">City</td>
+<td align="right">220</td>
+<td align="right">2013</td>
+<td align="right">21</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.40</td>
+<td align="left">Darth Maul</td>
+<td align="left">5000062-1</td>
+<td align="left">Minifig Pack</td>
+<td align="right">178</td>
+<td align="right">2012</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.40</td>
+<td align="left">Advent Calendar 2010</td>
+<td align="left">7952-10</td>
+<td align="left">Castle</td>
+<td align="right">219</td>
+<td align="right">2010</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.40</td>
+<td align="left">Holiday Ornament wit</td>
+<td align="left">853346-1</td>
+<td align="left">Christmas</td>
+<td align="right">227</td>
+<td align="right">2011</td>
+<td align="right">38</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.40</td>
+<td align="left">Ring of Fire</td>
+<td align="left">70100-1</td>
+<td align="left">Speedorz</td>
+<td align="right">572</td>
+<td align="right">2013</td>
+<td align="right">78</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.39</td>
+<td align="left">MUJI Christmas Set</td>
+<td align="left">e1a1404-1</td>
+<td align="left">Other</td>
+<td align="right">301</td>
+<td align="right">2011</td>
+<td align="right">120</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.39</td>
+<td align="left">Advent Calendar 2004</td>
+<td align="left">4924-24</td>
+<td align="left">Creator</td>
+<td align="right">223</td>
+<td align="right">2004</td>
+<td align="right">12</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.39</td>
+<td align="left">Advent Calendar 1998</td>
+<td align="left">1298-13</td>
+<td align="left">Classic Basic</td>
+<td align="right">221</td>
+<td align="right">1998</td>
+<td align="right">12</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.37</td>
+<td align="left">The Collector - San</td>
+<td align="left">comcon035-1</td>
+<td align="left">Guardians of the Galaxy</td>
+<td align="right">483</td>
+<td align="right">2014</td>
+<td align="right">8</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.36</td>
+<td align="left">Glider</td>
+<td align="left">5966-1</td>
+<td align="left">Exo-Force</td>
+<td align="right">389</td>
+<td align="right">2006</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.36</td>
+<td align="left">Ultimate Macy</td>
+<td align="left">70331-1</td>
+<td align="left">Nexo Knights</td>
+<td align="right">605</td>
+<td align="right">2016</td>
+<td align="right">101</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.36</td>
+<td align="left">Advent Calendar 2007</td>
+<td align="left">7600-20</td>
+<td align="left">Belville</td>
+<td align="right">218</td>
+<td align="right">2007</td>
+<td align="right">10</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.36</td>
+<td align="left">Monthly Mini Model B</td>
+<td align="left">40039-1</td>
+<td align="left">Monthly Mini Model Build</td>
+<td align="right">409</td>
+<td align="right">2012</td>
+<td align="right">16</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.36</td>
+<td align="left">Color Light</td>
+<td align="left">4056-1</td>
+<td align="left">Studios</td>
+<td align="right">273</td>
+<td align="right">2001</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.36</td>
+<td align="left">Cosmic Comet</td>
+<td align="left">6825-1</td>
+<td align="left">Classic Space</td>
+<td align="right">130</td>
+<td align="right">1985</td>
+<td align="right">40</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.36</td>
+<td align="left">Transparent Plates,</td>
+<td align="left">5128-1</td>
+<td align="left">Service Packs</td>
+<td align="right">443</td>
+<td align="right">1996</td>
+<td align="right">80</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.34</td>
+<td align="left">Advent Calendar 2002</td>
+<td align="left">4524-21</td>
+<td align="left">Creator</td>
+<td align="right">223</td>
+<td align="right">2002</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.34</td>
+<td align="left">Advent Calendar 2007</td>
+<td align="left">7600-25</td>
+<td align="left">Belville</td>
+<td align="right">218</td>
+<td align="right">2007</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.33</td>
+<td align="left">Gray Space Elements</td>
+<td align="left">13-1</td>
+<td align="left">Space</td>
+<td align="right">452</td>
+<td align="right">1981</td>
+<td align="right">10</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.33</td>
+<td align="left">Lighting Set Electri</td>
+<td align="left">7861-1</td>
+<td align="left">12V</td>
+<td align="right">242</td>
+<td align="right">1980</td>
+<td align="right">28</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.33</td>
+<td align="left">Advent Calendar 2002</td>
+<td align="left">4524-15</td>
+<td align="left">Creator</td>
+<td align="right">223</td>
+<td align="right">2002</td>
+<td align="right">11</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.32</td>
+<td align="left">Chopper Cop</td>
+<td align="left">6324-1</td>
+<td align="left">Police</td>
+<td align="right">100</td>
+<td align="right">1998</td>
+<td align="right">24</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.32</td>
+<td align="left">Sabah Promotional Se</td>
+<td align="left">1778-1</td>
+<td align="left">Basic Model</td>
+<td align="right">468</td>
+<td align="right">1997</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td align="right">32</td>
+<td align="right">0.32</td>
+<td align="left">Advent Calendar 2011</td>
+<td align="left">7553-7</td>
+<td align="left">City</td>
+<td align="right">220</td>
+<td align="right">2011</td>
+<td align="right">18</td>
+</tr>
+<tr class="even">
+<td align="right">32</td>
+<td align="right">0.32</td>
+<td align="left">Advent Calendar 2000</td>
+<td align="left">2250-2</td>
+<td align="left">Advent Sub-Set</td>
+<td align="right">217</td>
+<td align="right">2000</td>
+<td align="right">12</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 
 

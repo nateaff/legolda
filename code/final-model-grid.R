@@ -62,7 +62,7 @@ waff_topic <- function(data, ntopic, col) {
   wp <- wp + theme(
       # panel.spacing = unit(1.2, "lines"),
       plot.title = element_text(
-        size = 14,
+        size = 16,
         # family = "Roboto Condensed",
         face = "plain",
         color = "gray5"
@@ -92,7 +92,7 @@ bgcol <- "#787472"
 
 pp <- map(1:ntopics, ~waff_topic(data = tp, ntopic = .x, col = bgcol))
 
-pdf(here::here("docs", "figure", "final-grid-plot.pdf"), width = 10, height = 12)
+pdf(here::here("docs", "figure", "final-grid-plot.pdf"), width = 13, height = 15)
 
 grid.draw(
   grobTree(

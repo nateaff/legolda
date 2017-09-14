@@ -15,12 +15,12 @@
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/readable.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
-<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-1.1/highlight.js"></script>
 <link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
 
@@ -98,34 +98,34 @@ button.code-folding-btn:focus {
 <style type="text/css">
 /* padding for bootstrap navbar */
 body {
-  padding-top: 51px;
+  padding-top: 66px;
   padding-bottom: 40px;
 }
 /* offset scroll position for anchor links (for fixed navbar)  */
 .section h1 {
-  padding-top: 56px;
-  margin-top: -56px;
+  padding-top: 71px;
+  margin-top: -71px;
 }
 
 .section h2 {
-  padding-top: 56px;
-  margin-top: -56px;
+  padding-top: 71px;
+  margin-top: -71px;
 }
 .section h3 {
-  padding-top: 56px;
-  margin-top: -56px;
+  padding-top: 71px;
+  margin-top: -71px;
 }
 .section h4 {
-  padding-top: 56px;
-  margin-top: -56px;
+  padding-top: 71px;
+  margin-top: -71px;
 }
 .section h5 {
-  padding-top: 56px;
-  margin-top: -56px;
+  padding-top: 71px;
+  margin-top: -71px;
 }
 .section h6 {
-  padding-top: 56px;
-  margin-top: -56px;
+  padding-top: 71px;
+  margin-top: -71px;
 }
 </style>
 
@@ -182,13 +182,10 @@ $(document).ready(function () {
 <li>
   <a href="about.html">About</a>
 </li>
-<li>
-  <a href="license.html">License</a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/jdblischak/workflowr">
+  <a href="https://github.com/nateaff/legolda">
     <span class="fa fa-github"></span>
      
   </a>
@@ -207,32 +204,24 @@ $(document).ready(function () {
 </div>
 
 
-<p>Describe your project.</p>
+<div id="installing-and-running-the-code" class="section level1">
+<h1>Installing and running the code</h1>
+<p>The code is organized as a package with some additional structure based on the <code>workflowr</code> package. Both this repo and the <code>workflowr</code> package need to be installed to rebuild the analysis. (This could also be done directly with <code>rmarkdown</code>)</p>
+<pre><code>install.packages(&#39;workflowr&#39;)
+install.packages(&#39;devtools&#39;)
+devtools::install_github(&#39;nateaff/legolda&#39;)</code></pre>
+<p>The analysis also uses the following packages:</p>
+<pre><code>purrr, tidyr, forcats, stringr, ggplot2, dplyr
 
-<hr>
-<p>
-    This <a href="http://rmarkdown.rstudio.com">R Markdown</a> site was created with <a href="https://github.com/jdblischak/workflowr">workflowr</a>
-</p>
-<hr>
+# For text mining
+topicmodels, SpeedReader, tidytext, ldatuning, clues, waffle</code></pre>
+<p>After installing required packages and setting your working directory to the <code>legolda</code> package you need to run:</p>
+<pre><code>library(legolda)
+workflowr::wflow_build()</code></pre>
+<p>This builds the website version of the analysis you are reading now.</p>
+<p>There are a few intermediate cached files that are produced by the LDA function. These take a long time to run and to re-run you will need to set <code>from_cache</code> to <code>FALSE</code> in the <code>perplexity-cv.R</code> and <code>train-model.R</code> files. (I might update how this option is changed.) This takes 8 hours or so to run on a larger AWS instance. You also have the option of passing the <code>load_data</code> calls the <code>sample_data = 1000</code> parameter to run on a subset of the data. The sample number refers to the number of lego sets used to build the models.</p>
+</div>
 
-<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
-
-<!-- disqus
-  <div id="disqus_thread"></div>
-    <script type="text/javascript">
-        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
-
-        /* * * DON'T EDIT BELOW THIS LINE * * */
-        (function() {
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-        })();
-    </script>
-    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
--->
 
 
 

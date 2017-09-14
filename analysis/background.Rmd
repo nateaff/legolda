@@ -29,6 +29,7 @@ If $|D| = N$ then inverse document frequency is
 
 Computed with the `bind_tf_idf` function from `tidytext`.
 
+
 ## Perplexity 
 
 The perplexity estimates how well the learned probability distribution of topics over documents fits new samples from a document. The perpelexity of a distribution, $p$ estimated on a holdout set $q$, with events $x_i$, is  

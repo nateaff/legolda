@@ -4,7 +4,7 @@
 \alias{str_collapse}
 \title{Collapse String List}
 \usage{
-str_collapse(str_list, len, max_n = 3)
+str_collapse(str_list, len, max_n = 2)
 }
 \arguments{
 \item{len}{An integer. Length over which to use only the first max_n strings.}

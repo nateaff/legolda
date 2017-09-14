@@ -29,11 +29,10 @@ devtools::load_all()
 
 <!-- Add your analysis here -->
 
-# Color distributions over topics
 
-In the beginning we described the latend-Dirichlet model as a generative model. The LDA algorithm attempts to learn the generative distributions that's most likely given the data at hand. The result of the LDA models is two posterior distributions, the algorithm's best guess at the distribution of topics over the Lego sets and colors over the topics that generated out documents. 
+## Color distributions by topic
 
-First we'll look at the learned topics. 
+The last thing we'll look at before presenting plots for the final model is the color distribution over each topic. This gives us a picture of what our color themes actually are! 
 
 ```{r setup, }
 library(dplyr)
@@ -49,28 +48,42 @@ load_data(sample_data = FALSE)
 knitr::read_chunk(here::here("code", "compare-models.R"))
 ```
 
+## Color distributions over topics 
+
+For these plots the distribution is represented by a weighted relevance score (the same that is used in the `LDAvis` package). 
+
+
 ```{r color-distribution}
 ```
 
-```{r topic-sets-table}
+Even though our model scores might have leaned towards a model with fewere topics, we can see specific topics where adding more models separates themes that appear to be quite different. The firs two examples are of topic \# 2 from the 30 topic model which seems more coherent in the 40 topic model (the sencond plot). 
+
+
+### Topic 2 from the 30 topic model
+
+```{r  topic-waffle-2-2}
 ```
 
-```{r  waffle-topic}
+```{r topic-table-2-2}
 ```
 
-```{r, topic-sets-table2}
+
+### Topic 2 from the 40 topic model
+
+```{r, topic-waffle-3-2}
 ```
 
-```{r  waffle-topic2, }
+```{r  topic-table-3-2}
 ```
 
-```{r topic-sets-table3}
+One final plot from topic 32 that I looked questionable but seems to have grouped some related (if small) sets. 
+
+```{r topic-waffle-3-32}
 ```
 
-```{r  waffle-topic3}
 
+```{r topic-table-3-32}
 ```
-
 
 
 

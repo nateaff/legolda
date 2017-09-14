@@ -46,10 +46,9 @@ gamma_tbl %>%
   scale_x_continuous(breaks = c(.25, 0.5, .75)) + 
   scale_y_log10() +
   labs(
-    title = paste0("Topic probability distribution for ", topic_n, " topics"),
-    subtitle = paste0("Topic probability per set arranged by topic"),
-    y = "Documents per bin",
-    x = "Probability bin"
+    title = paste0("Set distribution over ", topic_n, " topics"),
+    y = "Sets per bin",
+    x = "Topic probability bin"
   ) +
   facet_wrap(~topic, ncol = 8) +
   legolda::theme_bar(bgcol = "#f8f8f8") 
