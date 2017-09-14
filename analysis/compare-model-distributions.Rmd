@@ -50,11 +50,16 @@ knitr::read_chunk(here::here("code", "compare-models.R"))
 
 ## Color distributions over topics 
 
-For these plots the distribution is represented by a weighted relevance score (the same that is used in the `LDAvis` package). 
+For these plots the distribution is represented by a weighted relevance score (the same that is used in the `[`LDAvis` package](http://www.kennyshirley.com/LDAvis/#topic=0&lambda=0.61&term=).
+ 
+The beta $\beta$ matrix, gives the posterior distribution of words given a topic, $p(w|t)$. Relevance is computed
+\[ \text{relevance}(w|t) = \lambda \cdot p(w|t) + (1-\lambda)\cdot \frac{p(w|t)}{p(w)}.
+\]
 
 
 ```{r color-distribution}
 ```
+## How many themes?
 
 Even though our model scores might have leaned towards a model with fewere topics, we can see specific topics where adding more models separates themes that appear to be quite different. The firs two examples are of topic \# 2 from the 30 topic model which seems more coherent in the 40 topic model (the sencond plot). 
 

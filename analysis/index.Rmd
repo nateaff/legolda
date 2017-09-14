@@ -19,8 +19,8 @@ I’ve wrote up the results on my blog and I also have a walk-through of the not
 
 [2. Training and evaluating the model](train-model.html)
 
-[3. Exploring color distributions of a couple models](compare-model-distributions.html)
+[3. Color distributions of the topic models](compare-model-distributions.html)
 
-[4. A few plots of the final model](final-model.html)
+[4. Plots of the final model](final-model.html)
 
 [5. Math notes on a few of the evaluation methods used](background.html)
