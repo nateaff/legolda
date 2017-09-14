@@ -5,6 +5,10 @@ output:
     toc: false
 ---
 
+# Note 
+
+I need to update the data access method since the `legolda::connect` method isn't included in the repo. You can replace this method by downloading the [da taset](https://www.kaggle.com/rtatman/lego-database) loading the tables into one of the SQL databases for which a DBI adaptor had been made (Postges, MySQL, SQLite). You then need a `connect()` method that returns a connection to this database.
+
 # Installing and running the code 
 
 The code is organized as a package with some additional structure based on the `workflowr` package. Both this repo and the `workflowr` package need to be installed to rebuild the analysis. (This could also be done directly with `rmarkdown`)
