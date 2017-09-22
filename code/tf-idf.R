@@ -13,11 +13,10 @@ library(tidytext)
 library(purrr)
 
 # Compute tf-idf.
-load_data(sample_data = FALSE)
+load_csv(sample_data = FALSE)
 create_tables()
 
 ## @knitr top-tf-idf-plot
-
 pal <- unique(set_colors$rgba)
 names(pal) <- unique(pal)
 
@@ -46,7 +45,7 @@ top %>%
     show.legend = FALSE
   ) +
   scale_fill_manual(values = pal) +
-  scale_x_discrete(labels = top$name) +
+  scale_x_discrete(labels = top$set_name) +
   labs(
     x = "Set name and color",
     y = "TF-IDF score",
@@ -64,8 +63,8 @@ bgcol <- "#e8e4e2"
 top %>%
   select(set_num) %>%
   left_join(set_colors) %>%
-  select(name, theme, year, set_num, rgba) %>%
-  group_by(theme, name, set_num, year) %>%
+  select(set_name, theme, year, set_num, rgba) %>%
+  group_by(theme, set_name, set_num, year) %>%
   tidyr::nest() %>%
   mutate(counts = purrr::map(data, table)) -> out
 
@@ -102,7 +101,7 @@ low %>%
     show.legend = FALSE
   ) +
   scale_fill_manual(values = pal) +
-  scale_x_discrete(labels = low$name) +
+  scale_x_discrete(labels = low$set_name) +
   labs(
     x = "Set name and color",
     y = "TF-IDF",
@@ -117,8 +116,8 @@ low %>%
 low %>%
   select(set_num) %>%
   left_join(set_colors) %>%
-  select(name, theme, year, set_num, rgba) %>%
-  group_by(theme, name, set_num, year) %>%
+  select(set_name, theme, year, set_num, rgba) %>%
+  group_by(theme, set_name, set_num, year) %>%
   tidyr::nest() %>%
   mutate(counts = purrr::map(data, table)) -> out
 

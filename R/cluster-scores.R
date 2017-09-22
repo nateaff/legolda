@@ -15,8 +15,8 @@ score_kmeans <- function(n_topics, from_cache = FALSE) {
   } else {
     if(!exists("dtm") | !exists("total_words")) {
       cat("Loading table 'set_colors'")
-      load_data(sample_data = FALSE)
-      load_data(sample_data = FALSE)
+      load_csv(sample_data = FALSE)
+      load_csv(sample_data = FALSE)
     }
 
     tf_idf <- tm::weightTfIdf(m = dtm, normalize = TRUE)

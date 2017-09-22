@@ -22,6 +22,7 @@ For the final model I used the 40 topic model. The perplexity scores and visuali
 
 Although themes are a mixture of colors I represented each theme with a single color made of a weighted blend of it's two colors most associated with that theme.
 
+
 ## Theme distribution
 
 ```{r load-chunk1}
@@ -33,7 +34,7 @@ knitr::read_chunk(here::here("code", "final-model-plots.R"))
 ```{r plot-topic-distribution, fig.width = 6, fig.height = 6}
 ```
 
-## Lego theme timeline
+## LEGO theme timeline
 
 ```{r plot-topic-timeline, eval = TRUE, fig.width = 7, fig.height = 10}
 ```

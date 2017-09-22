@@ -12,7 +12,6 @@ knitr::read_chunk(here::here("code", "chunk-options.R"))
 
 ```{r knitr-opts-chunk, include=FALSE}
 ```
-
 <!-- Insert last update and git version -->
 
 ```{r last-updated, echo=FALSE, results='asis'}
@@ -21,13 +20,13 @@ knitr::read_chunk(here::here("code", "chunk-options.R"))
 ```{r code-version, echo=FALSE, results='asis'}
 ```
 
-
 ## Analyzing color frequency with TF-IDF
-A few primary colors along with black, gray, and white make up the majority of the brick colors in the Lego dataset. In text mining, one might remove some set of stop words that are frequent in all texts but add no meaning to a statistical analysis of the text. In our case, there are just 125 unique colors and I did not use a color stop list. 
+
+A few primary colors along with black, gray, and white make up the majority of the brick colors in the LEGO dataset. In text mining, one might remove some set of stop words that are frequent in all texts but add no meaning to a statistical analysis of the text. In our case, there are just 125 unique colors and I did not use a color stop list. 
 
 TF-IDF is one way to look at words that are more meaningful to each document. Word frequency per document is weighted(inversely) by the number of documents the word occurs in. The TF-IDF score shows what terms are unique to a particular document. 
 
-We can adopt this directly to the Lego set to see what colors are unique to particular Lego sets.
+We can adopt this directly to the LEGO set to see what colors are unique to particular LEGO sets.
 
 In the preceding code, we make a summary table of word counts for sets and the corpus and the `tidytext` function computes the TF, IDF and TF-IDF scores.
 

@@ -69,6 +69,6 @@ coh_tbl %>%
   labs(
     x = "Number of topics", y = "Coherence",
     title = "Term coherence of LDA models",
-    subtitle = "Coherence scores (higher is better) for top 3, 5 and 10 terms"
+    subtitle = "Coherence scores (higher is better) for the top 3, 5 and 10 terms"
   ) +
   theme_scatter(bgcol= "#f8f8f8")

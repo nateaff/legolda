@@ -15,14 +15,13 @@ knitr::read_chunk(here::here("code", "chunk-options.R"))
 
 ```{r knitr-opts-chunk, include=FALSE}
 ```
-
 <!-- Insert last udpate and git version-->
 ```{r last-updated, echo=FALSE, results='asis'}
 ```
 
 ```{r code-version, echo=FALSE, results='asis'}
-``` 
-
+```
+ 
 # Selecting a topic model 
 
 As with kmeans clustering the LDA model requires the number of topics $k$ to be selected by the user. In this section we test out several methods that could be used to automate the scoring and selection
@@ -86,7 +85,7 @@ knitr::read_chunk(here::here("code", "coherence-scores.R"))
 
 
 ## Cluster scoring 
-We can also treat the LDA models as clustering the Lego sets. We can assign the Lego set to the color topic which has the highest value for that document; This is the topic that is most responsible for generating the document.
+We can also treat the LDA models as clustering the LEGO sets. We can assign the LEGO set to the color topic which has the highest value for that document; This is the topic that is most responsible for generating the document.
 
 The previous plot should indicate whether documents are getting strongly associated with a topic or if topics are to evenly distributed over all documents. 
 

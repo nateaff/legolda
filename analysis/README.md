@@ -8,5 +8,3 @@ These files contain the analysis code and write-up. All R code except for a few 
 3. `compare-model-distributions.Rmd` Plots of color distributions over topics, plots of example sets and tables of example sets. 
 4. `final-model.Rmd` Several plots of the final model. 
 5. `background` Some math used in model evaluation.
-
-<!-- _(TODO)_ Copy overview from or to the index.Rmd.  -->

@@ -1,19 +1,19 @@
 ---
-title: "About"
+title: "LEGO color themes"
 output:
   html_document:
     toc: false
 ---
 
-# Lego color themes 
+In this project I use topic models to model Lego color themes. Topic models were originally designed to find themes in document corpora but have been applied to problems in genetics and image analysis. For the Lego sets, the colors take the role of words or terms in a topic model and the sets are considered documents. The goal of the topic model(LDA), is to find coherent color themes in the Lego dataset.
 
-In this project I use topic models to model Lego color themes. Topic models were originally designed to find themes in document corpora can be applied to problems in genetics and image analysis. For the Lego sets, the colors take the role of words or terms in a topic model and the sets are considered documents. The goal of the topic model(LDA), is to find coherent color themes in the Lego dataset.
+You can also apply other text mining techniques that rely only on word frequency and not word order. For example, I use the TF-IDF score to plot uncommon and common color-set combinations.
 
-We can also apply other text mining techniques that don't rely only on word frequency and not word order. For example, I use the TF-IDF score to plot uncommon and common color-set combinations.
+Part of the purpose of this project was to try out the text analysis techniques in Julia Silge and David Robinson's [Text Mining with R](http://tidytextmining.com) book. A good deal of the code is an adaptation of theirs. 
 
-Part of the purpose of this project was to try out the text analysis techniques in Julia Silge and David Robinson's [Text Mining with R](tidytextmining.com) book. A good deal of the code is an adaptation of theirs. 
+I’ve wrote up the results on my blog and I also have a walk-through of the [notebook on Kaggle](https://www.kaggle.com/nateaff/finding-lego-color-themes-with-topic-models). The [about](about.html) page has instruction if you want to install the package and re-run the code.
 
-I’ve wrote up the results on my blog and I also have a walk-through of the notebook on kaggle. The about page has instruction if you want to install the package and re-run the code.
+_Note: I have not tested the instructions for installing from Github to reproduce the analysis._
 
 [1. Exploratory plots; High and low TF-IDF](tf-idf.html)
 

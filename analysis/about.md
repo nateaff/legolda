@@ -7,7 +7,11 @@ output:
 
 # Note 
 
-I need to update the data access method since the `legolda::connect` method isn't included in the repo. You can replace this method by downloading the [da taset](https://www.kaggle.com/rtatman/lego-database) loading the tables into one of the SQL databases for which a DBI adaptor had been made (Postges, MySQL, SQLite). You then need a `connect()` method that returns a connection to this database.
+I've updated the repo so the dataset CSV files are in `data`. The `load_csv` method replaces the `load_data` method and loads data from the local CSV files. 
+
+# Kaggle 
+
+There's also a Kaggle notebook that is nearly identical to the code. That [notebook is here.](https://www.kaggle.com/nateaff/finding-lego-color-themes-with-topic-models). 
 
 # Installing and running the code 
 
@@ -36,6 +40,6 @@ workflowr::wflow_build()
 ```
 This builds the website version of the analysis you are reading now. 
 
-There are a few intermediate cached files that are produced by the LDA function. These take a long time to run and to re-run you will need to set `from_cache` to `FALSE` in the `perplexity-cv.R` and `train-model.R` files. (I might update how this option is changed.) This takes 8 hours or so to run on a larger AWS instance. You also have the option of passing the `load_data` calls the `sample_data = 1000` parameter to run on a subset of the data. The sample number refers to the number of lego sets used to build the models.
+There are a few intermediate cached files that are produced by the LDA function. These take a long time to run and to re-run you will need to set `from_cache` to `FALSE` in the `perplexity-cv.R` and `train-model.R` files. (I might update how this option is changed.) This takes 8 hours or so to run on a larger AWS instance. You also have the option of passing the `load_csv` function the `sample_data` parameter to run on a subset of the data LEGO sets. The sample number refers to the number of LEGO sets used to build the models.
 
 

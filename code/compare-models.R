@@ -4,7 +4,7 @@ library(dplyr)
 library(ggplot2)
 
 if(!exists("set_colors")){
-  legolda::load_data(sample_data = FALSE)
+  legolda::load_csv(sample_data = FALSE)
   legolda::create_tables(sample_data = FALSE)
 }
 

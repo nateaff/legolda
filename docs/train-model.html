@@ -324,20 +324,17 @@ div.tocify {
 <!-- The file analysis/chunks.R contains chunks that define default settings
 shared across the workflowr files. -->
 <!-- Insert last udpate and git version-->
-<p><strong>Last updated:</strong> 2017-09-13</p>
-<p><strong>Code version:</strong> 880af53</p>
+<p><strong>Last updated:</strong> 2017-09-22</p>
+<p><strong>Code version:</strong> 37e505a</p>
 <div id="selecting-a-topic-model" class="section level1">
 <h1>Selecting a topic model</h1>
-<p>Up to this point, we’ve been using the full data set. (Actually, I’m not including some data so I should say, almost the full data set). Solving the LDA problem is computationally intensive, so for the remaining examples, we’re going to work with a very small sample of the data, just 250 sets of the 11,000 set total.</p>
+<p>As with kmeans clustering the LDA model requires the number of topics <span class="math inline">\(k\)</span> to be selected by the user. In this section we test out several methods that could be used to automate the scoring and selection</p>
 <div id="cross-validation-on-perplexity" class="section level2">
 <h2>Cross validation on perplexity</h2>
 <p>The LDA model learns to posterior distributions which are the optimization routine’s best guess at the distributions that generated the data. One method to test how good those distributions fit our data is to compare the learned distribution on a training set to the distribution of a holdout set. Perplexity is one measure of the difference between estimated topic distributions on documents.</p>
 <p>We cast the set_word table to a document term matrix using the <code>tidytext</code> function. This returns a<code>documentTermMatrix</code> object from the <code>tm</code> package. The LDA function we use is from the <code>topicmodels</code> package. It has a variational expectation maximation method and a Gibbs sampling method and I used the former.</p>
-<pre><code>Connecting to database 
+<pre><code>Loading datasets from CSV files 
 Assigning themes to theme_df 
-Assigning sets to sets_df 
-Retrieving dataset form db 
-Disconnecting from database 
 Assigning full set set inventories to &#39;set_colors&#39; 
 Assigning values to total_words
 Assigning tidy set and color dataframe to &#39;set_words&#39; 
@@ -345,13 +342,12 @@ Creating sparse document term matrix (tm-package) and assigning to &#39;dtm&#39;
 <pre class="r"><code>perplexities &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;perplexity_all.RDS&quot;))</code></pre>
 <div id="k-topic-grid" class="section level3">
 <h3>K-topic grid</h3>
-<p>Since I tested the running time on different set numbers I have seen that for this small number of sets there aren’t many topics. I’m putting a few more topic values <span class="math inline">\(k\)</span> on the lower end but including some higher values to better see the trend.</p>
-<p>Perplexity decreases with more topics but the rate of decrease changes around 10 to 15.</p>
+<p>Since I tested the running time on different set numbers I have seen that for this small number of sets there aren’t many topics. I have included a few more topic values <span class="math inline">\(k\)</span> on the lower end but including some higher values to better see the trend.</p>
 <pre class="r"><code>perplexities %&gt;% ggplot(aes(n_topic, perplexity)) + geom_point(aes(colour = fold), 
     size = 2) + geom_line(aes(n_topic, perplexity, group = fold, colour = fold)) + 
     scale_color_manual(values = pal21(), guide = guide_legend(title = &quot;Folds&quot;)) + 
     geom_smooth(se = FALSE, colour = &quot;#2f2f2a&quot;) + scale_x_continuous(breaks = perplexities$n_topic) + 
-    labs(x = &quot;Number of topics&quot;, y = &quot;Perplexity&quot;, title = &quot;Perplexities scores for LDA models&quot;, 
+    labs(x = &quot;Number of topics&quot;, y = &quot;Perplexity&quot;, title = &quot;Perplexity scores for LDA models&quot;, 
         subtitle = &quot;Perplexity (lower is better) of holdout sets for 5-fold cross-validation&quot;) + 
     legolda::theme_scatter(bgcol = &quot;#f8f8f8&quot;)</code></pre>
 <p><img src="figure/train-model.Rmd/cv-result-plot-1.png" width="100%" style="display: block; margin: auto;" /></p>
@@ -363,8 +359,8 @@ if (!from_cache) {
 }</code></pre>
 </div>
 </div>
-<div id="other-measures-of-topic-quality" class="section level2">
-<h2>Other measures of topic quality</h2>
+<div id="ldatuning-topic-scores" class="section level2">
+<h2><code>ldatuning</code> topic scores</h2>
 <p>The <code>ldatuning</code> package has several other metrics of the quality of the topic models. I have modified the main function from the package to only return the scores. (The original package computes the models first and then the scores).</p>
 <pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;ldatuning-scores.R&quot;))</code></pre>
 <pre class="r"><code>lda_models &lt;- readRDS(here::here(&quot;inst&quot;, &quot;data&quot;, &quot;lda_models_all.RDS&quot;))
@@ -372,11 +368,6 @@ lda_metrics &lt;- legolda::score_models(lda_models, dtm, topics = ntopics)
 
 plot_lda_scores(lda_metrics, title)</code></pre>
 <p><img src="figure/train-model.Rmd/ldatuning-scores-1.png" width="100%" style="display: block; margin: auto;" /></p>
-<div id="interpreting-the-topic-metrics" class="section level3">
-<h3>Interpreting the topic metrics</h3>
-<p>What are these measures? I skimmed two of the references in the <code>ldatuning</code> package but I don’t understand them enough to give a brief interpretation of what the scores mean.</p>
-<p>There is no agreement here although two measures change most between 5 and 15, although it is in opposite directions. Along with the perplexity numbers, it might suggest a value around 12. Here I’m informally assuming that we’re not gaining much information for <span class="math inline">\(k\)</span> greater than 20.</p>
-</div>
 </div>
 <div id="topic-coherence" class="section level2">
 <h2>Topic coherence</h2>
@@ -392,13 +383,13 @@ coh_tbl %&gt;% ggplot(aes(x = ntopics, y = coherence, group = nterms)) + geom_po
     group = nterms), size = 2) + geom_line(aes(color = nterms)) + scale_color_manual(values = pal21(), 
     guide = guide_legend(title = &quot;Number of terms&quot;)) + scale_x_continuous(breaks = coh_tbl$ntopics) + 
     labs(x = &quot;Number of topics&quot;, y = &quot;Coherence&quot;, title = &quot;Term coherence of LDA models&quot;, 
-        subtitle = &quot;Coherence scores (higher is better) for top 3, 5 and 10 terms&quot;) + 
+        subtitle = &quot;Coherence scores (higher is better) for the top 3, 5 and 10 terms&quot;) + 
     theme_scatter(bgcol = &quot;#f8f8f8&quot;)</code></pre>
 <p><img src="figure/train-model.Rmd/coherence-score-1.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="cluster-scoring" class="section level2">
 <h2>Cluster scoring</h2>
-<p>We can also treat the LDA models as clustering the Lego sets. We can assign the Lego set to the color topic which has the highest value for that document; This is the topic that is most responsible for generating the document.</p>
+<p>We can also treat the LDA models as clustering the LEGO sets. We can assign the LEGO set to the color topic which has the highest value for that document; This is the topic that is most responsible for generating the document.</p>
 <p>The previous plot should indicate whether documents are getting strongly associated with a topic or if topics are to evenly distributed over all documents.</p>
 <div id="clustering-sets-with-kmeans" class="section level3">
 <h3>Clustering sets with kmeans</h3>
@@ -407,14 +398,15 @@ coh_tbl %&gt;% ggplot(aes(x = ntopics, y = coherence, group = nterms)) + geom_po
 <div id="cluster-analysis" class="section level3">
 <h3>Cluster analysis</h3>
 <p>The clusters scores include Rand, adjusted Rand, Folkes-Mallow and Jaccard scores. All try to score a clustering on how well the discovered labels match the assigned labels – here the <code>root_id</code> of the set. The Rand index assigns a score based on the number pairwise agreement of the cluster labels with the original labels. The other measures are somewhat similar in approach.</p>
-<p>The scores behave similarly for both clustering methods but I’m not sure the results are helpful for determining the best <span class="math inline">\(k\)</span>. These labels might not match actual color themes and some theme ids may correspond well to a color topic while other themes may have no coherent color scheme.</p>
 </div>
 </div>
 <div id="topic-distribution" class="section level2">
 <h2>Topic Distribution</h2>
-<p>Another way to evaluate the quality of the topic models is to see how well do. This example follows a <a href="http://tidytextmining.com/nasa.html#calculating-tf-idf-for-the-description-fields">this section</a> from the tidy text mining book.</p>
-<p>The topic model’s ‘gamma’ matrix has the distribution of topics over models. The plot below visualizes this as how the <em>topics</em> are distributed over the probability bins for each topic. If too many topics have sets or documents in the low probability bins then you may have too high a number of topics since few documents are being strongly associated with any topic.</p>
-<p>For our lego sets at 10 topics, the number of documents in high probability bins is already getting sparse while at 5 the documents are better distributed over each topic. For most topics, only the first 2-5 terms were closely related to the topic so it is not surprising that the 10 term coherence drops off quickly. In any case, the coherence measure doesn’t tell us much. If we assume that only 3 terms are significant the plot does show there is not too much decline in coherence up to <span class="math inline">\(k = 10\)</span>.</p>
+<p>Another way to evaluate the quality of the topic models is to see how well documents are sorted into topics. This example follows a <a href="http://tidytextmining.com/nasa.html#calculating-tf-idf-for-the-description-fields">this section</a> from the tidy text mining book.</p>
+<p>The topic model’s gamma matrix has the distribution of topics over models: <span class="math display">\[
+ \text{gamma}  = p(t|d)
+\]</span> for topic <span class="math inline">\(t\)</span> and document <span class="math inline">\(d\)</span>.</p>
+<p>The plot below visualizes this as how the <em>topics</em> are distributed over the probability bins for each topic. If too many topics have sets or documents in the low probability bins then you may have too high a number of topics since few documents are being strongly associated with any topic.</p>
 <p>Following the tidytext book, look at the distribution over topics.</p>
 <p><img src="figure/train-model.Rmd/plot-40-topics-1.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>

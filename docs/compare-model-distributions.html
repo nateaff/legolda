@@ -348,10 +348,10 @@ knitr::opts_chunk$set(
   fig.path = paste0(&quot;figure/&quot;, knitr::current_input(), &quot;/&quot;)
 )</code></pre>
 <!-- Insert the date the file was last updated -->
-<p><strong>Last updated:</strong> 2017-09-13</p>
+<p><strong>Last updated:</strong> 2017-09-22</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> 880af53</p>
+<p><strong>Code version:</strong> 37e505a</p>
 <!-- Add your analysis here -->
 <div id="color-distributions-by-topic" class="section level2">
 <h2>Color distributions by topic</h2>
@@ -369,12 +369,14 @@ Assigning full set set inventories to &#39;set_colors&#39; </code></pre>
 </div>
 <div id="color-distributions-over-topics" class="section level2">
 <h2>Color distributions over topics</h2>
-<p>For these plots the distribution is represented by a weighted relevance score (the same that is used in the <code>LDAvis</code> package).</p>
+<p>For these plots the distribution is represented by a weighted relevance score (the same that is used in the <code>[</code>LDAvis` package](<a href="http://www.kennyshirley.com/LDAvis/#topic=0&amp;lambda=0.61&amp;term" class="uri">http://www.kennyshirley.com/LDAvis/#topic=0&amp;lambda=0.61&amp;term</a>=).</p>
+<p>The beta <span class="math inline">\(\beta\)</span> matrix, gives the posterior distribution of words given a topic, <span class="math inline">\(p(w|t)\)</span>. Relevance is computed <span class="math display">\[ \text{relevance}(w|t) = \lambda \cdot p(w|t) + (1-\lambda)\cdot \frac{p(w|t)}{p(w)}.
+\]</span></p>
 <pre class="r"><code>library(dplyr)
 library(ggplot2)
 
 if (!exists(&quot;set_colors&quot;)) {
-    legolda::load_data(sample_data = FALSE)
+    legolda::load_csv(sample_data = FALSE)
     legolda::create_tables(sample_data = FALSE)
 }
 
@@ -416,7 +418,7 @@ plot_relevance(top_list[[2]], bgcol)  # 20 topics</code></pre>
 <pre class="r"><code>plot_relevance(top_list[[3]], bgcol)  # 40 topics</code></pre>
 <p><img src="figure/compare-model-distributions.Rmd/color-distribution-2.png" width="100%" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plot_relevance(top_list[[5]], bgcol)  # 60 topics</code></pre>
-<p><img src="figure/compare-model-distributions.Rmd/color-distribution-3.png" width="100%" style="display: block; margin: auto;" /></p>
+<p><img src="figure/compare-model-distributions.Rmd/color-distribution-3.png" width="100%" style="display: block; margin: auto;" /> ## How many themes?</p>
 <p>Even though our model scores might have leaned towards a model with fewere topics, we can see specific topics where adding more models separates themes that appear to be quite different. The firs two examples are of topic # 2 from the 30 topic model which seems more coherent in the 40 topic model (the sencond plot).</p>
 <div id="topic-2-from-the-30-topic-model" class="section level3">
 <h3>Topic 2 from the 30 topic model</h3>

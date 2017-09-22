@@ -9,7 +9,7 @@ library(gridExtra)
 
 if(!exists("set_colors")){
   cat("Loading data \n")
-  legolda::load_data(sample_data = FALSE)
+  legolda::load_csv(sample_data = FALSE)
   legolda::create_tables()
 }
 

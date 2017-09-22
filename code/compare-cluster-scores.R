@@ -6,7 +6,6 @@
 # cluster scors for kmeans and LDA clusters to the parent_id of each set
 
 ## @knitr plot-external-scores
-# lda_models <- readRDS(here::here("inst", "data", "lda_models_all.RDS"))
 
 n_topics <- legolda::get_topic_numbers(lda_models)
 

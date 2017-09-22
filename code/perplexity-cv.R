@@ -14,7 +14,7 @@ library(topicmodels)
 from_cache <- TRUE
 
 if(!exists("set_colors")){
-  legolda::load_data(sample_data = FALSE)
+  legolda::load_csv(sample_data = FALSE)
   legolda::create_tables()
 }
 
@@ -68,7 +68,7 @@ perplexities %>%
   scale_x_continuous(breaks = perplexities$n_topic) +
   labs(
     x = "Number of topics", y = "Perplexity",
-    title = "Perplexities scores for LDA models",
+    title = "Perplexity scores for LDA models",
     subtitle = "Perplexity (lower is better) of holdout sets for 5-fold cross-validation"
   ) +
   legolda::theme_scatter(bgcol = "#f8f8f8") 

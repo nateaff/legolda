@@ -322,13 +322,13 @@ div.tocify {
 
 
 <!-- Insert last update and git version -->
-<p><strong>Last updated:</strong> 2017-09-13</p>
-<p><strong>Code version:</strong> 880af53</p>
+<p><strong>Last updated:</strong> 2017-09-22</p>
+<p><strong>Code version:</strong> 37e505a</p>
 <div id="analyzing-color-frequency-with-tf-idf" class="section level2">
 <h2>Analyzing color frequency with TF-IDF</h2>
-<p>From the frequency plot, it’s clear a few primary colors along with black, gray, and white make up the majority of brick colors. In text mining, one might remove some set of stop words that are frequent in all texts but add no meaning to a statistical analysis of the text. In our case, there are just 125 unique colors and I did not use a color stop list.</p>
+<p>A few primary colors along with black, gray, and white make up the majority of the brick colors in the LEGO dataset. In text mining, one might remove some set of stop words that are frequent in all texts but add no meaning to a statistical analysis of the text. In our case, there are just 125 unique colors and I did not use a color stop list.</p>
 <p>TF-IDF is one way to look at words that are more meaningful to each document. Word frequency per document is weighted(inversely) by the number of documents the word occurs in. The TF-IDF score shows what terms are unique to a particular document.</p>
-<p>We can adopt this directly to the Lego set to see what colors are unique to particular Lego sets.</p>
+<p>We can adopt this directly to the LEGO set to see what colors are unique to particular LEGO sets.</p>
 <p>In the preceding code, we make a summary table of word counts for sets and the corpus and the <code>tidytext</code> function computes the TF, IDF and TF-IDF scores.</p>
 <pre class="r"><code>devtools::load_all()
 knitr::read_chunk(here::here(&quot;code&quot;, &quot;tf-idf.R&quot;))</code></pre>
@@ -341,12 +341,9 @@ library(tidytext)
 library(purrr)
 
 # Compute tf-idf.
-load_data(sample_data = FALSE)</code></pre>
-<pre><code>Connecting to database 
+load_csv(sample_data = FALSE)</code></pre>
+<pre><code>Loading datasets from CSV files 
 Assigning themes to theme_df 
-Assigning sets to sets_df 
-Retrieving dataset form db 
-Disconnecting from database 
 Assigning full set set inventories to &#39;set_colors&#39; </code></pre>
 <pre class="r"><code>create_tables()</code></pre>
 <pre><code>Assigning values to total_words
@@ -371,7 +368,7 @@ top &lt;- tail(top, 10)
 bgcol = &quot;#e8e4e2&quot;
 # Plot highest tf-idf sets
 top %&gt;% ggplot() + geom_bar(aes(x = rgba, y = tf_idf, fill = rgba), stat = &quot;identity&quot;, 
-    show.legend = FALSE) + scale_fill_manual(values = pal) + scale_x_discrete(labels = top$name) + 
+    show.legend = FALSE) + scale_fill_manual(values = pal) + scale_x_discrete(labels = top$set_name) + 
     labs(x = &quot;Set name and color&quot;, y = &quot;TF-IDF score&quot;, title = &quot;Colors distinct to a set&quot;, 
         subtitle = paste0(&quot;Set and brick color combinations with high TF-IDF scores&quot;)) + 
     geom_hline(yintercept = c(0, 1, 2, 3), size = 1.5, col = bgcol) + coord_flip() + 
@@ -384,9 +381,9 @@ Top 10 TF-IDF set-color combinations
 </div>
 <pre class="r"><code>bgcol &lt;- &quot;#e8e4e2&quot;
 
-out &lt;- top %&gt;% select(set_num) %&gt;% left_join(set_colors) %&gt;% select(name, theme, 
-    year, set_num, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
-    mutate(counts = purrr::map(data, table))
+out &lt;- top %&gt;% select(set_num) %&gt;% left_join(set_colors) %&gt;% select(set_name, 
+    theme, year, set_num, rgba) %&gt;% group_by(theme, set_name, set_num, year) %&gt;% 
+    tidyr::nest() %&gt;% mutate(counts = purrr::map(data, table))
 
 
 # Waffle plots
@@ -397,10 +394,9 @@ iron(waff(out[10, ], size = 0.01, rows = 30, nchr = 20, bgcol = bgcol), waff(out
 <p><img src="figure/tf-idf.Rmd/top-tf-idf-sets-1.png" width="80%" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="low-tf-idf-set-term-combinations" class="section level2">
-<h2>Low TF-IDF set-term combinations</h2>
-<p>Set-color combinations are should correspond to colors that are common colors that are also common in a set. Here we make a plot similar to the last two but for set-colors combinations with the lowest TF-IDF scores.</p>
-<p>The lowest TF-IDF scores are associated with big sets with colors that show up in many sets.</p>
+<div id="low-tf-idf" class="section level2">
+<h2>Low TF-IDF</h2>
+<p>Set-color combinations are should correspond to colors that are common colors that are also common in a set. Here we make a plot similar to the last two but for set-colors combinations with the lowest TF-IDF scores. The lowest TF-IDF scores are associated with big sets with colors that show up in many sets.</p>
 <pre class="r"><code># Set-color combinations with low TF-IDF
 low &lt;- set_words %&gt;% arrange(tf_idf) %&gt;% mutate(rgba = factor(rgba, levels = unique(rgba))) %&gt;% 
     # Remove red sand brick sets
@@ -413,15 +409,15 @@ low$rgba &lt;- factor(low$rgba, low$rgba)
 low &lt;- low[1:10, ]
 
 low %&gt;% ggplot() + geom_bar(aes(x = rgba, y = tf_idf, fill = rgba), stat = &quot;identity&quot;, 
-    show.legend = FALSE) + scale_fill_manual(values = pal) + scale_x_discrete(labels = low$name) + 
+    show.legend = FALSE) + scale_fill_manual(values = pal) + scale_x_discrete(labels = low$set_name) + 
     labs(x = &quot;Set name and color&quot;, y = &quot;TF-IDF&quot;, title = &quot;Not very suprising colors&quot;, 
         subtitle = &quot;Set and brick color combinations with low TF-IDF scores&quot;) + 
     geom_hline(yintercept = c(0, 0.003, 0.006, 0.009), size = 1.5, col = bgcol) + 
     coord_flip() + legolda::theme_bar()</code></pre>
 <p><img src="figure/tf-idf.Rmd/low-tf-idf-plot-1.png" width="100%" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>out &lt;- low %&gt;% select(set_num) %&gt;% left_join(set_colors) %&gt;% select(name, theme, 
-    year, set_num, rgba) %&gt;% group_by(theme, name, set_num, year) %&gt;% tidyr::nest() %&gt;% 
-    mutate(counts = purrr::map(data, table))
+<pre class="r"><code>out &lt;- low %&gt;% select(set_num) %&gt;% left_join(set_colors) %&gt;% select(set_name, 
+    theme, year, set_num, rgba) %&gt;% group_by(theme, set_name, set_num, year) %&gt;% 
+    tidyr::nest() %&gt;% mutate(counts = purrr::map(data, table))
 
 
 iron(waff(out[10, ], size = 0.1, rows = 30, nchr = 17, bgcol = bgcol), waff(out[9, 

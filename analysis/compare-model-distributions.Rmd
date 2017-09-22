@@ -72,7 +72,6 @@ Even though our model scores might have leaned towards a model with fewere topic
 ```{r topic-table-2-2}
 ```
 
-
 ### Topic 2 from the 40 topic model
 
 ```{r, topic-waffle-3-2}
@@ -85,7 +84,6 @@ One final plot from topic 32 that I looked questionable but seems to have groupe
 
 ```{r topic-waffle-3-32}
 ```
-
 
 ```{r topic-table-3-32}
 ```

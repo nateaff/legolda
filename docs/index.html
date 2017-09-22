@@ -11,7 +11,7 @@
 
 
 
-<title>About</title>
+<title>LEGO color themes</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -199,23 +199,21 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">About</h1>
+<h1 class="title toc-ignore">LEGO color themes</h1>
 
 </div>
 
 
-<div id="lego-color-themes" class="section level1">
-<h1>Lego color themes</h1>
-<p>In this project I use topic models to model Lego color themes. Topic models were originally designed to find themes in document corpora can be applied to problems in genetics and image analysis. For the Lego sets, the colors take the role of words or terms in a topic model and the sets are considered documents. The goal of the topic model(LDA), is to find coherent color themes in the Lego dataset.</p>
-<p>With this set up we can apply other text mining techniques that don’t rely only on word frequency and not word order. For example, in some exploratory plots I use the TF-IDF score to plot uncommon and common color-set combinations.</p>
-<p>Part of the purpose of this project was to try out the text analysis techniques in Julia Silge and David Robinson’s <a href="tidytextmining.com">Text Mining with R</a> book. A good deal of the code is simply an adaptation of theirs.</p>
-<p>I’ve wrote up the results on my blog and I also have a walk-through of the notebook on kaggle. The about page has instruction if you want to install the package and re-run the code.</p>
+<p>In this project I use topic models to model Lego color themes. Topic models were originally designed to find themes in document corpora but have been applied to problems in genetics and image analysis. For the Lego sets, the colors take the role of words or terms in a topic model and the sets are considered documents. The goal of the topic model(LDA), is to find coherent color themes in the Lego dataset.</p>
+<p>You can also apply other text mining techniques that rely only on word frequency and not word order. For example, I use the TF-IDF score to plot uncommon and common color-set combinations.</p>
+<p>Part of the purpose of this project was to try out the text analysis techniques in Julia Silge and David Robinson’s <a href="http://tidytextmining.com">Text Mining with R</a> book. A good deal of the code is an adaptation of theirs.</p>
+<p>I’ve wrote up the results on my blog and I also have a walk-through of the <a href="https://www.kaggle.com/nateaff/finding-lego-color-themes-with-topic-models">notebook on Kaggle</a>. The <a href="about.html">about</a> page has instruction if you want to install the package and re-run the code.</p>
+<p><em>Note: I have not tested the instructions for installing from Github to reproduce the analysis.</em></p>
 <p><a href="tf-idf.html">1. Exploratory plots; High and low TF-IDF</a></p>
 <p><a href="train-model.html">2. Training and evaluating the model</a></p>
-<p><a href="compare-model-distributions.html">3. Exploring color distributions of a couple models</a></p>
-<p><a href="final-model.html">4. A few plots of the final model</a></p>
+<p><a href="compare-model-distributions.html">3. Color distributions of the topic models</a></p>
+<p><a href="final-model.html">4. Plots of the final model</a></p>
 <p><a href="background.html">5. Math notes on a few of the evaluation methods used</a></p>
-</div>
 
 
 

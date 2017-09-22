@@ -58,8 +58,8 @@ gg <- gg + scale_fill_manual(values = topic_pal)
 
 gg <- gg + labs(x = "Theme", 
                 y = "Sets in theme", 
-                subtitle = "Distribution of themes for all Lego sets, 1950 to 2017",
-                title = "Lego color theme frequency") 
+                subtitle = "Distribution of themes for all LEGO sets, 1950 to 2017",
+                title = "LEGO color theme frequency") 
 gg <- gg + theme_waff() 
 gg <- gg + coord_flip()
 gg <- gg + theme_dark_bar(bgcol = bgcol) 
@@ -132,7 +132,7 @@ scale_x_continuous(breaks = c(1960, 1980, 2000)) +
 labs(x = "", 
   y = "Sets in theme", 
   subtitle = "Number of sets published per year associated with a color theme",
-  title = "Lego sets per color theme, 1950-2017") +
+  title = "LEGO sets per color theme, 1950-2017") +
 facet_wrap(~topic_name, nrow = 10) +
 theme_scatter(bgcol = bgcol, grid_col = "#c8c6c4") +
 theme( 

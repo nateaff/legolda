@@ -6,7 +6,7 @@ library(dplyr)
 library(tidytext)
 library(purrr)
 
-lda_models <- readRDS("~/devel/R-proj/lego-lda/inst/data/lda_models_all.RDS")
+lda_models <- readRDS(here::here("inst","data","lda_models_all.RDS"))
 
 gamma_tbl <- lda_models %>%
   map(function(x) {
@@ -25,7 +25,7 @@ gamma_tbl %>%
   scale_y_log10() +
   scale_fill_manual(values = pal21()) +
   labs(
-    title = "Distribution of probabilities for all topics",
+    title = "Distribution of documents over topic probabilities",
     y = "Number of documents", x = expression(gamma)
   ) +
   facet_wrap(~topic_num) +

@@ -323,21 +323,23 @@ div.tocify {
 
 <div id="final-model-plots" class="section level1">
 <h1>Final model plots</h1>
-<p>Here are several plots based on the final color topics. 1. Color themes 2. Distribution of themes 3. Distribution of themes over time.</p>
-<div id="lego-color-themes" class="section level2">
-<h2>Lego color themes</h2>
-<p>This plot represents each topic as the distribution of colors. These are the ‘color urns’ that the Lego themes are drawn from.</p>
+<p>For the final model I used the 40 topic model. The perplexity scores and visualization of the document distribution over topics and color distribution per topic both informed the decision.</p>
+<ol style="list-style-type: decimal">
+<li>Distribution of themes</li>
+<li>Distribution of themes over time.</li>
+<li>Color themes</li>
+</ol>
+<p>Although themes are a mixture of colors I represented each theme with a single color made of a weighted blend of it’s two colors most associated with that theme.</p>
+<div id="theme-distribution" class="section level2">
+<h2>Theme distribution</h2>
 <pre class="r"><code>devtools::load_all()
 knitr::read_chunk(here::here(&quot;code&quot;, &quot;final-model-plots.R&quot;))</code></pre>
 <pre class="r"><code>library(dplyr)
 library(ggplot2)
 # Set model num. Models: 20, 30, 40, 50, 60, 75, 100
 create_tables(sample_data = FALSE)</code></pre>
-<pre><code>Loading table &#39;set_colors&#39;Connecting to database 
+<pre><code>Loading table &#39;set_colors&#39;Loading datasets from CSV files 
 Assigning themes to theme_df 
-Assigning sets to sets_df 
-Retrieving dataset form db 
-Disconnecting from database 
 Assigning full set set inventories to &#39;set_colors&#39; 
 Assigning values to total_words
 Assigning tidy set and color dataframe to &#39;set_words&#39; 
@@ -381,8 +383,8 @@ gg &lt;- gg + geom_hline(yintercept = c(300, 600, 900), size = 0.5, col = bgcol)
 gg &lt;- gg + scale_fill_manual(values = topic_pal)
 # gg &lt;- gg + scale_y_continuous(breaks = c(300, 600, 900))
 
-gg &lt;- gg + labs(x = &quot;Theme&quot;, y = &quot;Sets in theme&quot;, subtitle = &quot;Distribution of themes for all Lego sets, 1950 to 2017&quot;, 
-    title = &quot;Lego color theme frequency&quot;)
+gg &lt;- gg + labs(x = &quot;Theme&quot;, y = &quot;Sets in theme&quot;, subtitle = &quot;Distribution of themes for all LEGO sets, 1950 to 2017&quot;, 
+    title = &quot;LEGO color theme frequency&quot;)
 gg &lt;- gg + theme_waff()
 gg &lt;- gg + coord_flip()
 gg &lt;- gg + theme_dark_bar(bgcol = bgcol)
@@ -399,7 +401,7 @@ gg</code></pre>
 <p><img src="figure/final-model.Rmd/plot-topic-distribution-1.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="lego-theme-timeline" class="section level2">
-<h2>Lego theme timeline</h2>
+<h2>LEGO theme timeline</h2>
 <pre class="r"><code>model_num = 3
 topic_num = get_topic_numbers(lda_models)[model_num]
 
@@ -442,7 +444,7 @@ scale_x_continuous(breaks = c(1960, 1980, 2000)) +
 labs(x = &quot;&quot;, 
   y = &quot;Sets in theme&quot;, 
   subtitle = &quot;Number of sets published per year associated with a color theme&quot;,
-  title = &quot;Lego sets per color theme, 1950-2017&quot;) +
+  title = &quot;LEGO sets per color theme, 1950-2017&quot;) +
 facet_wrap(~topic_name, nrow = 10) +
 theme_scatter(bgcol = bgcol, grid_col = &quot;#c8c6c4&quot;) +
 theme( 
@@ -478,9 +480,8 @@ theme(
       )) + 
 theme(legend.position = &quot;none&quot;)</code></pre>
 <p><img src="figure/final-model.Rmd/plot-topic-timeline-1.png" width="100%" style="display: block; margin: auto;" /></p>
-<div id="the-topic-palette" class="section level3">
-<h3>The topic palette</h3>
-<p>Here we create a palette to represent each topic in the last two plots. I use a blend of the top two colors in each topic.</p>
+<div id="theme-color-distributions" class="section level3">
+<h3>Theme color distributions</h3>
 <pre class="r"><code>knitr::read_chunk(here::here(&quot;code&quot;, &quot;final-model-grid.R&quot;))</code></pre>
 <pre class="r"><code>library(forcats)
 library(purrr)
@@ -490,7 +491,7 @@ library(gridExtra)
 
 if(!exists(&quot;set_colors&quot;)){
   cat(&quot;Loading data \n&quot;)
-  legolda::load_data(sample_data = FALSE)
+  legolda::load_csv(sample_data = FALSE)
   legolda::create_tables()
 }
 

@@ -6,7 +6,4 @@ This repository is structured as a hybrid package and `workflowr` project. Re-us
 
 See the [about](https://nateaff.github.io/legolda/about.html) page for more details and caveats. The code and analysis folders also have readme files outlining the folder contents.
 
-## emoji tldr of the analysis 
-
-:thought_balloon: :bar_chart: :smiley: :bar_chart: :bar_chart: :heart_eyes: :bar_chart: :thought_balloon: :bar_chart: :chart_with_upwards_trend: :heart_eyes: :bar_chart: :fire: :fire:
- 
+If installing from here doesn't work try the [Kaggle repo](https://www.kaggle.com/nateaff/finding-lego-color-themes-with-topic-models).
