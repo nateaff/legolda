@@ -5,7 +5,7 @@ output:
     toc: false
 ---
 
-In this project I use topic models to model Lego color themes. Topic models were originally designed to find themes in document corpora but have been applied to problems in genetics and image analysis. For the Lego sets, the colors take the role of words or terms in a topic model and the sets are considered documents. The goal of the topic model(LDA), is to find coherent color themes in the Lego dataset.
+In this project I use topic models to model LEGO color themes. Topic models were originally designed to find themes in document corpora but have been applied to problems in genetics and image analysis. For the LEGO sets, the colors take the role of words or terms in a topic model and the sets are considered documents. The goal of the topic model(LDA), is to find coherent color themes in the LEGO dataset.
 
 You can also apply other text mining techniques that rely only on word frequency and not word order. For example, I use the TF-IDF score to plot uncommon and common color-set combinations.
 
